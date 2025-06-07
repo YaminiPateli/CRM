@@ -25,8 +25,8 @@ const rolePermissions = {
   agent: ['view_leads', 'create_leads', 'view_reports_limited']
 };
 
-// API base URL - you can change this to your actual API URL
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:3001';
+// API base URL - using Vite environment variables
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
