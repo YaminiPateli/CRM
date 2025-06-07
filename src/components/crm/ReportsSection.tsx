@@ -3,300 +3,292 @@ import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line, PieChart, Pie, Cell } from 'recharts';
-import { BarChart3, TrendingUp, Download, Calendar } from "lucide-react";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line } from 'recharts';
+import { Download, FileText, Users, Home, Calendar, TrendingUp } from "lucide-react";
+import { exportToCSV, generateLeadReport, generatePropertyReport, generateFollowUpReport } from '@/utils/exportUtils';
+import { useAuth } from '@/contexts/AuthContext';
 
 const ReportsSection = () => {
-  const [dateRange, setDateRange] = useState('last30days');
+  const { hasPermission } = useAuth();
+  const [selectedPeriod, setSelectedPeriod] = useState('30');
+  const [selectedReport, setSelectedReport] = useState('leads');
 
-  // Mock data for charts
-  const leadsData = [
-    { month: 'Jan', leads: 45, converted: 12 },
-    { month: 'Feb', leads: 52, converted: 15 },
-    { month: 'Mar', leads: 38, converted: 8 },
-    { month: 'Apr', leads: 61, converted: 18 },
-    { month: 'May', leads: 55, converted: 16 },
-    { month: 'Jun', leads: 67, converted: 22 }
+  // Mock data - replace with real data from your API
+  const leadStatusData = [
+    { name: 'New', value: 45, color: '#3B82F6' },
+    { name: 'Contacted', value: 78, color: '#10B981' },
+    { name: 'Visited', value: 32, color: '#F59E0B' },
+    { name: 'Converted', value: 23, color: '#8B5CF6' },
+    { name: 'Dropped', value: 15, color: '#EF4444' }
   ];
 
-  const sourceData = [
-    { name: 'Website Form', value: 35, color: '#8884d8' },
-    { name: 'Referral', value: 25, color: '#82ca9d' },
-    { name: 'Social Media', value: 20, color: '#ffc658' },
-    { name: 'Cold Call', value: 15, color: '#ff7300' },
-    { name: 'Walk-in', value: 5, color: '#00ff00' }
+  const agentPerformanceData = [
+    { name: 'Sarah Johnson', leads: 85, converted: 23, revenue: 2300000 },
+    { name: 'Mike Wilson', leads: 72, converted: 18, revenue: 1800000 },
+    { name: 'Emily Davis', leads: 65, converted: 15, revenue: 1500000 },
+    { name: 'James Brown', leads: 58, converted: 12, revenue: 1200000 }
   ];
 
-  const propertyData = [
-    { type: 'House', sold: 15, listed: 25 },
-    { type: 'Condo', sold: 8, listed: 18 },
-    { type: 'Townhouse', sold: 5, listed: 12 },
-    { type: 'Apartment', sold: 3, listed: 8 }
+  const weeklyTrendsData = [
+    { week: 'Week 1', leads: 28, conversions: 6, followUps: 45 },
+    { week: 'Week 2', leads: 35, conversions: 8, followUps: 52 },
+    { week: 'Week 3', leads: 42, conversions: 12, followUps: 38 },
+    { week: 'Week 4', leads: 38, conversions: 9, followUps: 41 }
   ];
 
-  const agentPerformance = [
-    { agent: 'Sarah Johnson', leads: 45, properties: 12, conversion: 26.7 },
-    { agent: 'Mike Wilson', leads: 38, properties: 8, conversion: 21.1 },
-    { agent: 'Lisa Chen', leads: 42, properties: 15, conversion: 35.7 },
-    { agent: 'David Brown', leads: 35, properties: 9, conversion: 25.7 }
+  const propertyTypeData = [
+    { name: 'Apartment', value: 120, color: '#3B82F6' },
+    { name: 'Villa', value: 85, color: '#10B981' },
+    { name: 'Commercial', value: 45, color: '#F59E0B' },
+    { name: 'Plot', value: 32, color: '#8B5CF6' }
   ];
 
-  const revenueData = [
-    { month: 'Jan', revenue: 450000 },
-    { month: 'Feb', revenue: 520000 },
-    { month: 'Mar', revenue: 380000 },
-    { month: 'Apr', revenue: 610000 },
-    { month: 'May', revenue: 550000 },
-    { month: 'Jun', revenue: 670000 }
+  // Mock data for exports
+  const mockLeads = [
+    { id: '1', name: 'John Doe', email: 'john@example.com', phone: '123-456-7890', status: 'new', source: 'Website', score: 85, assignedAgent: 'Sarah Johnson', createdAt: '2024-01-15', lastContact: '2024-01-15', budget: '50-75 Lakhs', requirements: '3 BHK Apartment' }
   ];
+
+  const mockProperties = [
+    { id: '1', address: '123 Main St', city: 'Mumbai', type: 'apartment', price: 5000000, beds: 3, baths: 2, sqft: 1200, status: 'available', agent: 'Sarah Johnson', listedDate: '2024-01-01' }
+  ];
+
+  const mockFollowUps = [
+    { id: '1', title: 'Call John Doe', contact: 'John Doe', property: '123 Main St', type: 'call', priority: 'high', status: 'pending', dueDate: '2024-01-20', dueTime: '10:00', assignedAgent: 'Sarah Johnson', createdAt: '2024-01-15' }
+  ];
+
+  const handleExportReport = (type: string) => {
+    if (!hasPermission('export_reports')) {
+      alert('You do not have permission to export reports');
+      return;
+    }
+
+    let data: any[] = [];
+    let filename = '';
+
+    switch (type) {
+      case 'leads':
+        data = generateLeadReport(mockLeads);
+        filename = `leads_report_${new Date().toISOString().split('T')[0]}`;
+        break;
+      case 'properties':
+        data = generatePropertyReport(mockProperties);
+        filename = `properties_report_${new Date().toISOString().split('T')[0]}`;
+        break;
+      case 'followups':
+        data = generateFollowUpReport(mockFollowUps);
+        filename = `followups_report_${new Date().toISOString().split('T')[0]}`;
+        break;
+      default:
+        return;
+    }
+
+    exportToCSV(data, filename);
+  };
+
+  const totalLeads = leadStatusData.reduce((sum, item) => sum + item.value, 0);
+  const conversionRate = Math.round((leadStatusData.find(item => item.name === 'Converted')?.value || 0) / totalLeads * 100);
+  const totalRevenue = agentPerformanceData.reduce((sum, agent) => sum + agent.revenue, 0);
 
   return (
     <div className="space-y-6">
-      <Card>
-        <CardHeader>
-          <div className="flex justify-between items-center">
-            <div>
-              <CardTitle className="flex items-center gap-2">
-                <BarChart3 className="h-5 w-5" />
-                Reports & Analytics
-              </CardTitle>
-              <CardDescription>
-                Comprehensive insights into your real estate business performance
-              </CardDescription>
-            </div>
-            <div className="flex gap-3">
-              <Select value={dateRange} onValueChange={setDateRange}>
-                <SelectTrigger className="w-40">
-                  <Calendar className="h-4 w-4 mr-2" />
-                  <SelectValue placeholder="Date Range" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="last7days">Last 7 days</SelectItem>
-                  <SelectItem value="last30days">Last 30 days</SelectItem>
-                  <SelectItem value="last90days">Last 90 days</SelectItem>
-                  <SelectItem value="lastyear">Last year</SelectItem>
-                </SelectContent>
-              </Select>
-              <Button variant="outline">
-                <Download className="h-4 w-4 mr-2" />
-                Export
+      {/* Header */}
+      <div className="flex justify-between items-center">
+        <div>
+          <h2 className="text-2xl font-bold text-gray-900">Reports & Analytics</h2>
+          <p className="text-gray-600">Comprehensive insights into your business performance</p>
+        </div>
+        <div className="flex gap-2">
+          <Select value={selectedPeriod} onValueChange={setSelectedPeriod}>
+            <SelectTrigger className="w-40">
+              <SelectValue placeholder="Select period" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="7">Last 7 days</SelectItem>
+              <SelectItem value="30">Last 30 days</SelectItem>
+              <SelectItem value="90">Last 90 days</SelectItem>
+              <SelectItem value="365">Last year</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
+
+      {/* Key Metrics */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Total Leads</CardTitle>
+            <Users className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{totalLeads}</div>
+            <p className="text-xs text-green-600">+12% from last period</p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Conversion Rate</CardTitle>
+            <TrendingUp className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{conversionRate}%</div>
+            <p className="text-xs text-green-600">+2.5% from last period</p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
+            <Users className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">₹{(totalRevenue / 10000000).toFixed(1)}Cr</div>
+            <p className="text-xs text-green-600">+8.2% from last period</p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Active Agents</CardTitle>
+            <Users className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{agentPerformanceData.length}</div>
+            <p className="text-xs text-blue-600">All agents active</p>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Charts Row 1 */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Lead Status Distribution */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Lead Status Distribution</CardTitle>
+            <CardDescription>Current lead pipeline breakdown</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <ResponsiveContainer width="100%" height={300}>
+              <PieChart>
+                <Pie
+                  dataKey="value"
+                  data={leadStatusData}
+                  cx="50%"
+                  cy="50%"
+                  outerRadius={80}
+                  label={({ name, value }) => `${name}: ${value}`}
+                >
+                  {leadStatusData.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={entry.color} />
+                  ))}
+                </Pie>
+                <Tooltip />
+              </PieChart>
+            </ResponsiveContainer>
+          </CardContent>
+        </Card>
+
+        {/* Property Type Distribution */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Property Type Distribution</CardTitle>
+            <CardDescription>Properties by type</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <ResponsiveContainer width="100%" height={300}>
+              <BarChart data={propertyTypeData}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="name" />
+                <YAxis />
+                <Tooltip />
+                <Bar dataKey="value" fill="#3B82F6" />
+              </BarChart>
+            </ResponsiveContainer>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Charts Row 2 */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Agent Performance */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Agent Performance</CardTitle>
+            <CardDescription>Lead conversion by agent</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <ResponsiveContainer width="100%" height={300}>
+              <BarChart data={agentPerformanceData}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="name" />
+                <YAxis />
+                <Tooltip />
+                <Bar dataKey="converted" fill="#10B981" name="Converted Leads" />
+              </BarChart>
+            </ResponsiveContainer>
+          </CardContent>
+        </Card>
+
+        {/* Weekly Trends */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Weekly Trends</CardTitle>
+            <CardDescription>Lead and conversion trends over time</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <ResponsiveContainer width="100%" height={300}>
+              <LineChart data={weeklyTrendsData}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="week" />
+                <YAxis />
+                <Tooltip />
+                <Line type="monotone" dataKey="leads" stroke="#3B82F6" name="New Leads" />
+                <Line type="monotone" dataKey="conversions" stroke="#10B981" name="Conversions" />
+              </LineChart>
+            </ResponsiveContainer>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Export Reports */}
+      {hasPermission('export_reports') && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center">
+              <FileText className="w-5 h-5 mr-2" />
+              Export Reports
+            </CardTitle>
+            <CardDescription>Download detailed reports in CSV format</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <Button 
+                onClick={() => handleExportReport('leads')}
+                className="flex items-center justify-center"
+              >
+                <Download className="w-4 h-4 mr-2" />
+                Export Leads Report
+              </Button>
+              <Button 
+                onClick={() => handleExportReport('properties')}
+                className="flex items-center justify-center"
+                variant="outline"
+              >
+                <Download className="w-4 h-4 mr-2" />
+                Export Properties Report
+              </Button>
+              <Button 
+                onClick={() => handleExportReport('followups')}
+                className="flex items-center justify-center"
+                variant="outline"
+              >
+                <Download className="w-4 h-4 mr-2" />
+                Export Follow-ups Report
               </Button>
             </div>
-          </div>
-        </CardHeader>
-        <CardContent>
-          <Tabs defaultValue="overview" className="space-y-6">
-            <TabsList className="grid w-full grid-cols-5">
-              <TabsTrigger value="overview">Overview</TabsTrigger>
-              <TabsTrigger value="leads">Leads</TabsTrigger>
-              <TabsTrigger value="properties">Properties</TabsTrigger>
-              <TabsTrigger value="agents">Agents</TabsTrigger>
-              <TabsTrigger value="revenue">Revenue</TabsTrigger>
-            </TabsList>
-
-            <TabsContent value="overview" className="space-y-6">
-              {/* Key Metrics */}
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-                <Card>
-                  <CardContent className="p-6">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="text-sm font-medium text-gray-600">Total Leads</p>
-                        <p className="text-3xl font-bold">1,234</p>
-                        <p className="text-sm text-green-600 flex items-center gap-1">
-                          <TrendingUp className="h-3 w-3" />
-                          +12% vs last month
-                        </p>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-                <Card>
-                  <CardContent className="p-6">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="text-sm font-medium text-gray-600">Conversion Rate</p>
-                        <p className="text-3xl font-bold">24.5%</p>
-                        <p className="text-sm text-green-600 flex items-center gap-1">
-                          <TrendingUp className="h-3 w-3" />
-                          +3.2% vs last month
-                        </p>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-                <Card>
-                  <CardContent className="p-6">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="text-sm font-medium text-gray-600">Properties Sold</p>
-                        <p className="text-3xl font-bold">89</p>
-                        <p className="text-sm text-green-600 flex items-center gap-1">
-                          <TrendingUp className="h-3 w-3" />
-                          +8% vs last month
-                        </p>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-                <Card>
-                  <CardContent className="p-6">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="text-sm font-medium text-gray-600">Revenue</p>
-                        <p className="text-3xl font-bold">$2.1M</p>
-                        <p className="text-sm text-green-600 flex items-center gap-1">
-                          <TrendingUp className="h-3 w-3" />
-                          +15% vs last month
-                        </p>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
-
-              {/* Charts */}
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Lead Sources</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <ResponsiveContainer width="100%" height={300}>
-                      <PieChart>
-                        <Pie
-                          data={sourceData}
-                          cx="50%"
-                          cy="50%"
-                          labelLine={false}
-                          label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-                          outerRadius={80}
-                          fill="#8884d8"
-                          dataKey="value"
-                        >
-                          {sourceData.map((entry, index) => (
-                            <Cell key={`cell-${index}`} fill={entry.color} />
-                          ))}
-                        </Pie>
-                        <Tooltip />
-                      </PieChart>
-                    </ResponsiveContainer>
-                  </CardContent>
-                </Card>
-
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Monthly Revenue Trend</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <ResponsiveContainer width="100%" height={300}>
-                      <LineChart data={revenueData}>
-                        <CartesianGrid strokeDasharray="3 3" />
-                        <XAxis dataKey="month" />
-                        <YAxis />
-                        <Tooltip formatter={(value) => [`$${value.toLocaleString()}`, 'Revenue']} />
-                        <Line type="monotone" dataKey="revenue" stroke="#8884d8" strokeWidth={2} />
-                      </LineChart>
-                    </ResponsiveContainer>
-                  </CardContent>
-                </Card>
-              </div>
-            </TabsContent>
-
-            <TabsContent value="leads" className="space-y-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Lead Generation & Conversion</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <ResponsiveContainer width="100%" height={400}>
-                    <BarChart data={leadsData}>
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="month" />
-                      <YAxis />
-                      <Tooltip />
-                      <Bar dataKey="leads" fill="#8884d8" name="Total Leads" />
-                      <Bar dataKey="converted" fill="#82ca9d" name="Converted" />
-                    </BarChart>
-                  </ResponsiveContainer>
-                </CardContent>
-              </Card>
-            </TabsContent>
-
-            <TabsContent value="properties" className="space-y-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Property Performance by Type</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <ResponsiveContainer width="100%" height={400}>
-                    <BarChart data={propertyData}>
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="type" />
-                      <YAxis />
-                      <Tooltip />
-                      <Bar dataKey="listed" fill="#8884d8" name="Listed" />
-                      <Bar dataKey="sold" fill="#82ca9d" name="Sold" />
-                    </BarChart>
-                  </ResponsiveContainer>
-                </CardContent>
-              </Card>
-            </TabsContent>
-
-            <TabsContent value="agents" className="space-y-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Agent Performance</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="overflow-x-auto">
-                    <table className="w-full border-collapse">
-                      <thead>
-                        <tr className="border-b">
-                          <th className="text-left p-3">Agent</th>
-                          <th className="text-right p-3">Leads</th>
-                          <th className="text-right p-3">Properties Sold</th>
-                          <th className="text-right p-3">Conversion Rate</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {agentPerformance.map((agent, index) => (
-                          <tr key={index} className="border-b">
-                            <td className="p-3 font-medium">{agent.agent}</td>
-                            <td className="p-3 text-right">{agent.leads}</td>
-                            <td className="p-3 text-right">{agent.properties}</td>
-                            <td className="p-3 text-right">{agent.conversion}%</td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                </CardContent>
-              </Card>
-            </TabsContent>
-
-            <TabsContent value="revenue" className="space-y-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Revenue Analytics</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <ResponsiveContainer width="100%" height={400}>
-                    <LineChart data={revenueData}>
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="month" />
-                      <YAxis />
-                      <Tooltip formatter={(value) => [`$${value.toLocaleString()}`, 'Revenue']} />
-                      <Line type="monotone" dataKey="revenue" stroke="#8884d8" strokeWidth={3} />
-                    </LineChart>
-                  </ResponsiveContainer>
-                </CardContent>
-              </Card>
-            </TabsContent>
-          </Tabs>
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 };
