@@ -1,17 +1,26 @@
-
 const express = require('express');
 const cors = require('cors');
+const path = require('path');
+require('dotenv').config({ path: path.join(__dirname, '.env') });
+
 const authRoutes = require('./auth');
 const pool = require('../database/config');
 const jwt = require('jsonwebtoken');
-require('dotenv').config();
 
 const app = express();
 const port = process.env.PORT || 3001;
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-in-production';
 
+console.log('Starting Real Estate CRM API Server...');
+console.log('Environment:', process.env.NODE_ENV);
+console.log('Port:', port);
+console.log('Frontend URL:', process.env.FRONTEND_URL);
+
 // Middleware
-app.use(cors());
+app.use(cors({
+  origin: process.env.FRONTEND_URL || 'http://localhost:5173',
+  credentials: true
+}));
 app.use(express.json());
 
 // Auth middleware
@@ -37,7 +46,31 @@ app.use('/api/auth', authRoutes);
 
 // Health check
 app.get('/health', (req, res) => {
-  res.json({ status: 'OK', message: 'Real Estate CRM API is running' });
+  res.json({ 
+    status: 'OK', 
+    message: 'Real Estate CRM API is running',
+    timestamp: new Date().toISOString(),
+    database: 'Connected'
+  });
+});
+
+// Database connection test endpoint
+app.get('/api/test-db', async (req, res) => {
+  try {
+    const result = await pool.query('SELECT NOW() as current_time, version() as version');
+    res.json({
+      status: 'success',
+      message: 'Database connection successful',
+      data: result.rows[0]
+    });
+  } catch (error) {
+    console.error('Database test error:', error);
+    res.status(500).json({
+      status: 'error',
+      message: 'Database connection failed',
+      error: error.message
+    });
+  }
 });
 
 // Contacts/Leads API
@@ -201,6 +234,7 @@ app.post('/api/projects', authenticateToken, async (req, res) => {
 app.listen(port, () => {
   console.log(`Real Estate CRM API server running on port ${port}`);
   console.log(`Health check: http://localhost:${port}/health`);
+  console.log(`Database test: http://localhost:${port}/api/test-db`);
 });
 
 module.exports = app;
