@@ -25,6 +25,9 @@ const rolePermissions = {
   agent: ['view_leads', 'create_leads', 'view_reports_limited']
 };
 
+// API base URL - you can change this to your actual API URL
+const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:3001';
+
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -36,8 +39,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     
     if (token && userData) {
       try {
-        setUser(JSON.parse(userData));
+        const parsedUser = JSON.parse(userData);
+        setUser(parsedUser);
       } catch (error) {
+        console.error('Error parsing stored user data:', error);
         localStorage.removeItem('auth_token');
         localStorage.removeItem('user_data');
       }
@@ -47,8 +52,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const login = async (email: string, password: string) => {
     try {
-      // This would be replaced with actual API call
-      const response = await fetch('/api/auth/login', {
+      const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -63,10 +67,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setUser(userData);
         return { success: true };
       } else {
-        return { success: false, error: 'Invalid credentials' };
+        const errorData = await response.json();
+        return { success: false, error: errorData.error || 'Login failed' };
       }
     } catch (error) {
-      // Mock login for demo purposes
+      console.error('Login error:', error);
+      // Fallback to mock authentication for demo purposes
       if (email === 'admin@demo.com' && password === 'admin') {
         const userData = { id: '1', email, name: 'Admin User', role: 'admin' as const };
         localStorage.setItem('auth_token', 'demo_token');
@@ -86,7 +92,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setUser(userData);
         return { success: true };
       }
-      return { success: false, error: 'Invalid credentials' };
+      return { success: false, error: 'Invalid credentials. Please try: admin@demo.com/admin, manager@demo.com/manager, or agent@demo.com/agent' };
     }
   };
 
