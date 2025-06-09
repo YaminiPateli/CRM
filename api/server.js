@@ -1,11 +1,17 @@
-const express = require('express');
-const cors = require('cors');
-const path = require('path');
-require('dotenv').config({ path: path.join(__dirname, '.env') });
 
-const authRoutes = require('./auth');
-const pool = require('../database/config');
-const jwt = require('jsonwebtoken');
+import express from 'express';
+import cors from 'cors';
+import { fileURLToPath } from 'url';
+import { dirname, join } from 'path';
+import dotenv from 'dotenv';
+import authRoutes from './auth.js';
+import pool from '../database/config.js';
+import jwt from 'jsonwebtoken';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+
+dotenv.config({ path: join(__dirname, '.env') });
 
 const app = express();
 const port = process.env.PORT || 3001;
@@ -237,4 +243,4 @@ app.listen(port, () => {
   console.log(`Database test: http://localhost:${port}/api/test-db`);
 });
 
-module.exports = app;
+export { app as default };

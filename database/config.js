@@ -1,6 +1,14 @@
 
-const { Pool } = require('pg');
-require('dotenv').config({ path: './api/.env' });
+import pkg from 'pg';
+const { Pool } = pkg;
+import dotenv from 'dotenv';
+import { fileURLToPath } from 'url';
+import { dirname, join } from 'path';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+
+dotenv.config({ path: join(__dirname, '../api/.env') });
 
 console.log('Database configuration:');
 console.log('DB_HOST:', process.env.DB_HOST);
@@ -48,4 +56,4 @@ pool.connect((err, client, release) => {
   }
 });
 
-module.exports = pool;
+export default pool;
