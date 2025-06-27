@@ -88,7 +88,13 @@ const UserManagement = () => {
       });
 
       if (!response.ok) {
-        const errorData = await response.json();
+        const text = await response.text(); // Get raw response text
+        let errorData;
+        try {
+          errorData = JSON.parse(text) || { error: 'Failed to parse error response' };
+        } catch {
+          errorData = { error: text || 'Unknown error' };
+        }
         throw new Error(errorData.error || 'Failed to delete user');
       }
 

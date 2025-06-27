@@ -113,7 +113,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     login,
     logout,
     hasPermission,
-    isLoading
+    isLoading,
+    setUser, // Added setUser to the context value
   };
 
   return (
