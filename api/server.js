@@ -10,6 +10,7 @@ import authRoutes from './auth.js';
 import leadsRoutes from './routes/leads.js';
 import projectsRoutes from './routes/projects.js';
 import utilsRoutes from './routes/utils.js';
+import userRoutes from './routes/user.routes.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -19,23 +20,32 @@ dotenv.config({ path: join(__dirname, '.env') });
 const app = express();
 const port = process.env.PORT || 3001;
 
-console.log('Starting Real Estate CRM API Server...');
-console.log('Environment:', process.env.NODE_ENV);
-console.log('Port:', port);
-console.log('Frontend URL:', process.env.FRONTEND_URL);
-
 // Middleware
+const allowedOrigins = [
+  'http://localhost:8080',
+  'http://192.168.1.57:8080', // add your LAN IP
+];
+
 app.use(cors({
-  origin: process.env.FRONTEND_URL || 'http://localhost:5173',
-  credentials: true
+  origin: function (origin, callback) {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  credentials: true,
 }));
 app.use(express.json());
 
 // Routes
+
 app.use('/api/auth', authRoutes);
 app.use('/api/leads', leadsRoutes);
 app.use('/api/projects', projectsRoutes);
 app.use('/', utilsRoutes);
+app.use('/api', userRoutes);
+
 
 // Start server
 app.listen(port, () => {

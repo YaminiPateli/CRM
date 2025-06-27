@@ -157,7 +157,7 @@ const FollowUpSystem = () => {
                   Create Follow-up
                 </Button>
               </DialogTrigger>
-              <DialogContent className="max-w-2xl">
+              <DialogContent className="max-w-2xl h-[100vh] overflow-y-auto">
                 <DialogHeader>
                   <DialogTitle>Create New Follow-up</DialogTitle>
                   <DialogDescription>

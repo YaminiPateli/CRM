@@ -14,7 +14,7 @@ router.get('/', authenticateToken, async (req, res) => {
     let query = `
       SELECT c.*, p1.name as project_name, p2.flat_no as property_flat, u.name as agent_name
       FROM contacts c
-      LEFT JOIN projects p1 ON c.interested_project_id = p1.id
+      LEFT JOIN projects p1 ON c.interest ed_project_id = p1.id
       LEFT JOIN properties p2 ON c.interested_property_id = p2.id
       LEFT JOIN users u ON c.assigned_agent_id = u.id
       WHERE 1=1

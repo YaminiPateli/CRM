@@ -1,12 +1,20 @@
-
 import { useState, useEffect } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card, CardContent, CardDescription, CardHeader, CardTitle
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Plus, Search, Home, MapPin, Bed, Bath, Maximize } from "lucide-react";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue
+} from "@/components/ui/select";
+import {
+  Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger
+} from "@/components/ui/dialog";
+import {
+  Plus, Search, Home, MapPin, Bed, Bath, Maximize
+} from "lucide-react";
 import CreatePropertyForm from './CreatePropertyForm';
 import { useToast } from "@/hooks/use-toast";
 
@@ -17,9 +25,12 @@ const PropertiesManagement = () => {
   const [statusFilter, setStatusFilter] = useState('all');
   const [typeFilter, setTypeFilter] = useState('all');
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isViewModalOpen, setIsViewModalOpen] = useState(false);
+  const [selectedProperty, setSelectedProperty] = useState(null);
   const { toast } = useToast();
 
-  // Mock data - replace with API calls
+  // Mock data - replace with API later
   const mockProperties = [
     {
       id: 1,
@@ -101,6 +112,17 @@ const PropertiesManagement = () => {
     }).format(price);
   };
 
+  const handleEditSave = (updatedProperty) => {
+    setProperties(prev =>
+      prev.map(p => p.id === updatedProperty.id ? updatedProperty : p)
+    );
+    setIsEditModalOpen(false);
+    toast({
+      title: "Property Updated",
+      description: "Property details have been updated successfully",
+    });
+  };
+
   return (
     <div className="space-y-6">
       <Card>
@@ -115,6 +137,8 @@ const PropertiesManagement = () => {
                 Manage your property listings and inventory
               </CardDescription>
             </div>
+
+            {/* Add Property Modal */}
             <Dialog open={isCreateModalOpen} onOpenChange={setIsCreateModalOpen}>
               <DialogTrigger asChild>
                 <Button>
@@ -125,11 +149,9 @@ const PropertiesManagement = () => {
               <DialogContent className="max-w-2xl">
                 <DialogHeader>
                   <DialogTitle>Add New Property</DialogTitle>
-                  <DialogDescription>
-                    Add a new property to your listings
-                  </DialogDescription>
+                  <DialogDescription>Add a new property to your listings</DialogDescription>
                 </DialogHeader>
-                <CreatePropertyForm 
+                <CreatePropertyForm
                   onClose={() => setIsCreateModalOpen(false)}
                   onPropertyCreated={(newProperty) => {
                     setProperties(prev => [...prev, newProperty]);
@@ -144,8 +166,9 @@ const PropertiesManagement = () => {
             </Dialog>
           </div>
         </CardHeader>
+
         <CardContent>
-          {/* Search and Filters */}
+          {/* Filters */}
           <div className="flex flex-col sm:flex-row gap-4 mb-6">
             <div className="relative flex-1">
               <Search className="h-4 w-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
@@ -156,6 +179,7 @@ const PropertiesManagement = () => {
                 className="pl-10"
               />
             </div>
+
             <Select value={statusFilter} onValueChange={setStatusFilter}>
               <SelectTrigger className="w-40">
                 <SelectValue placeholder="Status" />
@@ -168,6 +192,7 @@ const PropertiesManagement = () => {
                 <SelectItem value="withdrawn">Withdrawn</SelectItem>
               </SelectContent>
             </Select>
+
             <Select value={typeFilter} onValueChange={setTypeFilter}>
               <SelectTrigger className="w-40">
                 <SelectValue placeholder="Type" />
@@ -182,7 +207,7 @@ const PropertiesManagement = () => {
             </Select>
           </div>
 
-          {/* Properties Grid */}
+          {/* Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredProperties.map((property) => (
               <Card key={property.id} className="overflow-hidden">
@@ -203,7 +228,6 @@ const PropertiesManagement = () => {
                       <MapPin className="h-4 w-4" />
                       <span className="text-sm">{property.city}, {property.state} {property.zipCode}</span>
                     </div>
-                    
                     <div className="flex items-center gap-4 text-sm text-gray-600">
                       <div className="flex items-center gap-1">
                         <Bed className="h-4 w-4" />
@@ -218,23 +242,35 @@ const PropertiesManagement = () => {
                         <span>{property.sqft} sqft</span>
                       </div>
                     </div>
-                    
                     <p className="text-sm text-gray-600 line-clamp-2">
                       {property.description}
                     </p>
-                    
                     <div className="border-t pt-2 mt-2">
                       <div className="flex justify-between items-center text-sm">
                         <span className="text-gray-600">Agent: {property.agent}</span>
                         <span className="text-gray-600">Listed: {property.listingDate}</span>
                       </div>
                     </div>
-                    
                     <div className="flex gap-2 pt-2">
-                      <Button size="sm" variant="outline" className="flex-1">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="flex-1"
+                        onClick={() => {
+                          setSelectedProperty(property);
+                          setIsEditModalOpen(true);
+                        }}
+                      >
                         Edit
                       </Button>
-                      <Button size="sm" className="flex-1">
+                      <Button
+                        size="sm"
+                        className="flex-1"
+                        onClick={() => {
+                          setSelectedProperty(property);
+                          setIsViewModalOpen(true);
+                        }}
+                      >
                         View Details
                       </Button>
                     </div>
@@ -245,6 +281,87 @@ const PropertiesManagement = () => {
           </div>
         </CardContent>
       </Card>
+
+      {/* View Modal */}
+      <Dialog open={isViewModalOpen} onOpenChange={setIsViewModalOpen}>
+        <DialogContent className="max-w-xl">
+          <DialogHeader>
+            <DialogTitle>Property Details</DialogTitle>
+            <DialogDescription>
+              Full information about the selected property
+            </DialogDescription>
+          </DialogHeader>
+          {selectedProperty && (
+            <div className="space-y-3 text-sm text-gray-700">
+              <p><strong>Address:</strong> {selectedProperty.address}</p>
+              <p><strong>City:</strong> {selectedProperty.city}</p>
+              <p><strong>State:</strong> {selectedProperty.state}</p>
+              <p><strong>Zip Code:</strong> {selectedProperty.zipCode}</p>
+              <p><strong>Type:</strong> {selectedProperty.type}</p>
+              <p><strong>Status:</strong> {selectedProperty.status}</p>
+              <p><strong>Price:</strong> {formatPrice(selectedProperty.price)}</p>
+              <p><strong>Beds:</strong> {selectedProperty.beds}</p>
+              <p><strong>Baths:</strong> {selectedProperty.baths}</p>
+              <p><strong>Sqft:</strong> {selectedProperty.sqft}</p>
+              <p><strong>Description:</strong> {selectedProperty.description}</p>
+              <p><strong>Agent:</strong> {selectedProperty.agent}</p>
+              <p><strong>Listed Date:</strong> {selectedProperty.listingDate}</p>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Modal */}
+      <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
+        <DialogContent className="max-w-xl">
+          <DialogHeader>
+            <DialogTitle>Edit Property</DialogTitle>
+            <DialogDescription>Update the selected property</DialogDescription>
+          </DialogHeader>
+          {selectedProperty && (
+            <form
+              className="space-y-4"
+              onSubmit={(e) => {
+                e.preventDefault();
+                handleEditSave(selectedProperty);
+              }}
+            >
+              <Input
+                name="address"
+                value={selectedProperty.address}
+                onChange={(e) =>
+                  setSelectedProperty({ ...selectedProperty, address: e.target.value })
+                }
+              />
+              <Input
+                name="city"
+                value={selectedProperty.city}
+                onChange={(e) =>
+                  setSelectedProperty({ ...selectedProperty, city: e.target.value })
+                }
+              />
+              <Input
+                name="price"
+                value={selectedProperty.price}
+                onChange={(e) =>
+                  setSelectedProperty({ ...selectedProperty, price: parseInt(e.target.value) })
+                }
+              />
+              <Textarea
+                name="description"
+                value={selectedProperty.description}
+                onChange={(e) =>
+                  setSelectedProperty({ ...selectedProperty, description: e.target.value })
+                }
+              />
+              <div className="flex justify-end gap-2">
+                <Button variant="outline" onClick={() => setIsEditModalOpen(false)}>Cancel</Button>
+                <Button type="submit">Save</Button>
+              </div>
+            </form>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

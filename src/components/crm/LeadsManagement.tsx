@@ -129,7 +129,7 @@ const LeadsManagement = () => {
                   Create Lead
                 </Button>
               </DialogTrigger>
-              <DialogContent className="max-w-2xl">
+              <DialogContent className="max-w-2xl h-[100vh] overflow-y-auto">
                 <DialogHeader>
                   <DialogTitle>Create New Lead</DialogTitle>
                   <DialogDescription>
@@ -201,7 +201,7 @@ const LeadsManagement = () => {
                   <TableHead>Status</TableHead>
                   <TableHead>Type</TableHead>
                   <TableHead>Score</TableHead>
-                  <TableHead>Assigned Agent</TableHead>
+                  <TableHead>Assigned Person</TableHead>
                   <TableHead>Last Contact</TableHead>
                   <TableHead>Actions</TableHead>
                 </TableRow>

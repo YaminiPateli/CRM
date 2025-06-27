@@ -1,4 +1,3 @@
-
 import pkg from 'pg';
 const { Pool } = pkg;
 import dotenv from 'dotenv';
@@ -8,6 +7,7 @@ import { dirname, join } from 'path';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
+// Load environment variables from the api directory
 dotenv.config({ path: join(__dirname, '../api/.env') });
 
 console.log('Database configuration:');
@@ -24,9 +24,9 @@ const pool = new Pool({
   port: process.env.DB_PORT || 5432,
   ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
   // Connection pool settings
-  max: 20, // maximum number of clients in the pool
-  idleTimeoutMillis: 30000, // how long a client is allowed to remain idle before being closed
-  connectionTimeoutMillis: 2000, // how long to wait when connecting to a new client
+  max: 20,
+  idleTimeoutMillis: 30000,
+  connectionTimeoutMillis: 2000,
 });
 
 // Test connection

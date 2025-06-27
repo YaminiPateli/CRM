@@ -26,6 +26,7 @@ router.post('/login', async (req, res) => {
 
     const user = userResult.rows[0];
 
+
     // Check password
     const isValidPassword = await bcrypt.compare(password, user.password);
     
@@ -33,20 +34,24 @@ router.post('/login', async (req, res) => {
       return res.status(401).json({ error: 'Invalid credentials' });
     }
 
-    // Generate JWT token
+  const updateQuery = 'UPDATE users SET last_login = CURRENT_TIMESTAMP WHERE id = $1';
+  const timeResult = await pool.query(updateQuery, [user.id]);
+
+  // Generate JWT token
     const token = jwt.sign(
       { 
         id: user.id, 
         email: user.email, 
         role: user.role 
       },
-      JWT_SECRET,
+      process.env.JWT_SECRET,
       { expiresIn: '24h' }
     );
 
     // Return user data (without password) and token
     const { password: _, ...userWithoutPassword } = user;
-    
+   
+
     res.json({
       token,
       user: userWithoutPassword
