@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger,
 } from "@/components/ui/dialog";
-import { Plus, User, Mail, Shield, Calendar, Edit } from "lucide-react";
+import { Plus, User, Mail, Shield, Calendar, Edit, Trash2 } from "lucide-react";
 import CreateUserForm from './CreateUserForm';
 import EditUserForm from './EditUserForm';
 import { useAuth } from '@/contexts/AuthContext';
@@ -221,6 +221,7 @@ const UserManagement = () => {
                       }}
                     >
                       {/* <Trash2 className="w-4 h-4 mr-2" /> */}
+                      <Trash2 className="w-4 h-4 mr-2"/>
                       Delete
                     </Button>
                   </div>
@@ -267,7 +268,7 @@ const UserManagement = () => {
         <div className="flex items-center justify-center">
           <Button
             variant="outline"
-            className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2 w-fit h-fit text-lg"
+            className="inline-flex items-center justify-center gap-0 whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2 w-fit h-fit text-lg"
             onClick={() => {
               // Add logic to view all users, e.g., remove slice or navigate to a full list
               console.log("View all users clicked");
