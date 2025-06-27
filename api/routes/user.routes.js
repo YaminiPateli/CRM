@@ -9,7 +9,7 @@ const router = express.Router();
 router.get('/users', authenticateToken, async (req, res) => {
   try {
     const result = await pool.query(
-      `SELECT * FROM users ORDER BY created_at DESC`
+      `SELECT * FROM users WHERE deleted_at IS NULL ORDER BY created_at DESC`
     );
     res.status(200).json(result.rows);
   } catch (error) {
@@ -95,6 +95,59 @@ router.put('/users/change-password', authenticateToken, async (req, res) => {
 });
 
 // PUT update profile (for current user)
+// router.put('/profile', authenticateToken, async (req, res) => {
+//   const { name, phone, role } = req.body;
+//   const userId = req.user.id;
+
+//   console.log('Profile update request:', { userId, name, phone, role }); // Debug log
+
+//   if (!name || !phone || !role) {
+//     return res.status(400).json({ error: 'Name, phone, and role are required' });
+//   }
+
+//   try {
+//     // Update the users table
+//     const updateResult = await pool.query(
+//       'UPDATE users SET name = $1, phone = $2, role = $3, updated_at = CURRENT_TIMESTAMP WHERE id = $4 RETURNING *',
+//       [name, phone, role, userId]
+//     );
+
+//     if (updateResult.rowCount === 0) {
+//       return res.status(404).json({ error: 'User not found' });
+//     }
+
+//     // Check and update user_roles table
+//     const roleCheck = await pool.query(
+//       'SELECT 1 FROM user_roles WHERE user_id = $1',
+//       [userId]
+//     );
+//     if (roleCheck.rowCount === 0) {
+//       await pool.query(
+//         'INSERT INTO user_roles (user_id, role, assigned_by, assigned_at) VALUES ($1, $2, $3, CURRENT_TIMESTAMP)',
+//         [userId, role, 'self']
+//       );
+//     } else {
+//       await pool.query(
+//         'UPDATE user_roles SET role = $1, assigned_by = $2, assigned_at = CURRENT_TIMESTAMP WHERE user_id = $3',
+//         [role, 'self', userId]
+//       );
+//     }
+
+//     console.log('Profile updated successfully for userId:', userId); // Debug log
+//     res.status(200).json({ message: 'Profile updated successfully', updatedUser: updateResult.rows[0] });
+//   } catch (error) {
+//     console.error('Error updating profile:', error);
+//     if (error.code === '23503') { // Foreign key violation
+//       res.status(400).json({ error: 'Invalid role value' });
+//     } else if (error.code === '22P02') { // Invalid input syntax
+//       res.status(400).json({ error: 'Invalid data format' });
+//     } else {
+//       res.status(500).json({ error: 'Internal server error' });
+//     }
+//   }
+// });
+
+// PUT update profile (for current user)
 router.put('/profile', authenticateToken, async (req, res) => {
   const { name, phone, role } = req.body;
   const userId = req.user.id;
@@ -108,7 +161,7 @@ router.put('/profile', authenticateToken, async (req, res) => {
   try {
     // Update the users table
     const updateResult = await pool.query(
-      'UPDATE users SET name = $1, phone = $2, role = $3, updated_at = CURRENT_TIMESTAMP WHERE id = $4 RETURNING *',
+      'UPDATE users SET name = $1, phone = $2, role = $3, updated_at = CURRENT_TIMESTAMP WHERE id = $4 AND deleted_at IS NULL RETURNING *',
       [name, phone, role, userId]
     );
 
@@ -146,6 +199,8 @@ router.put('/profile', authenticateToken, async (req, res) => {
     }
   }
 });
+
+
 
 // PUT update user (for admin)
 router.put('/users/:id', authenticateToken, async (req, res) => {
@@ -191,6 +246,32 @@ router.put('/users/:id', authenticateToken, async (req, res) => {
     res.status(200).json({ message: 'User updated successfully' });
   } catch (error) {
     console.error('Error updating user:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Soft delete user
+router.delete('/users/:id', authenticateToken, async (req, res) => {
+  const { id } = req.params;
+  const isAdmin = req.user.role === 'admin';
+
+  if (!isAdmin) {
+    return res.status(403).json({ error: 'Only admins can delete users' });
+  }
+
+  try {
+    const result = await pool.query(
+      'UPDATE users SET deleted_at = CURRENT_TIMESTAMP WHERE id = $1 AND deleted_at IS NULL RETURNING *',
+      [id]
+    );
+
+    if (result.rowCount === 0) {
+      return res.status(404).json({ error: 'User not found or already deleted' });
+    }
+
+    res.status(200).json({ message: 'User deleted successfully' });
+  } catch (error) {
+    console.error('Error deleting user:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 });

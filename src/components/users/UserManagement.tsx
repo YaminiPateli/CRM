@@ -20,7 +20,7 @@ interface User {
   phone: string;
   role: 'admin' | 'manager' | 'agent';
   status: boolean;
-  lastlogin: string;
+  lastLogin: string;
   createdAt: string;
   assignedLeads: number;
   convertedLeads: number;
@@ -55,10 +55,6 @@ const UserManagement = () => {
       }
 
       const result = await response.json();
-      // const updatedUsers = result.map((user: any) => ({
-      //   ...user,
-      //   status: user.is_active === true || user.is_active === 'true',
-      // }));
       const updatedUsers = result.map((user: any) => ({
         id: user.id,
         name: user.name,
@@ -78,6 +74,28 @@ const UserManagement = () => {
       setError("Failed to load users. Please try again later.");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleDeleteUser = async (userId: string) => {
+    try {
+      const response = await fetch(`http://localhost:3001/api/users/${userId}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to delete user');
+      }
+
+      await fetchUsers();
+    } catch (err) {
+      console.error('Error deleting user:', err);
+      setError(err.message || 'Failed to delete user');
     }
   };
 
@@ -227,13 +245,8 @@ const UserManagement = () => {
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => {
-                        // Add delete logic, e.g., API call to delete user
-                        console.log(`Delete user ${user.id}`);
-                        fetchUsers();
-                      }}
+                      onClick={() => handleDeleteUser(user.id)}
                     >
-                      {/* <Trash2 className="w-4 h-4 mr-2" /> */}
                       <Trash2 className="w-4 h-4 mr-2"/>
                       Delete
                     </Button>
@@ -283,7 +296,6 @@ const UserManagement = () => {
             variant="outline"
             className="inline-flex items-center justify-center gap-0 whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2 w-fit h-fit text-lg"
             onClick={() => {
-              // Add logic to view all users, e.g., remove slice or navigate to a full list
               console.log("View all users clicked");
             }}
           >
