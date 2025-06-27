@@ -20,7 +20,7 @@ interface User {
   phone: string;
   role: 'admin' | 'manager' | 'agent';
   status: boolean;
-  lastLogin: string;
+  lastlogin: string;
   createdAt: string;
   assignedLeads: number;
   convertedLeads: number;
@@ -55,10 +55,23 @@ const UserManagement = () => {
       }
 
       const result = await response.json();
+      // const updatedUsers = result.map((user: any) => ({
+      //   ...user,
+      //   status: user.is_active === true || user.is_active === 'true',
+      // }));
       const updatedUsers = result.map((user: any) => ({
-        ...user,
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        phone: user.phone,
+        role: user.role,
         status: user.is_active === true || user.is_active === 'true',
+        lastLogin: user.last_login,
+        createdAt: user.created_at,
+        assignedLeads: user.assigned_leads ?? 0,
+        convertedLeads: user.converted_leads ?? 0,
       }));
+
       setUsers(updatedUsers);
     } catch (err) {
       console.error("Failed to fetch users:", err);
@@ -259,7 +272,7 @@ const UserManagement = () => {
               <div className="pt-2 border-t text-xs text-gray-500">
                 <div className="flex items-center">
                   <Calendar className="w-3 h-3 mr-1" />
-                  Last login: {new Date(user.last_login).toLocaleDateString()}
+                  Last login: {new Date(user.lastLogin).toLocaleDateString()}
                 </div>
               </div>
             </CardContent>
