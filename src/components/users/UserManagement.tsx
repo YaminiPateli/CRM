@@ -12,6 +12,8 @@ import { Plus, User, Mail, Shield, Calendar, Edit, Trash2 } from "lucide-react";
 import CreateUserForm from './CreateUserForm';
 import EditUserForm from './EditUserForm';
 import { useAuth } from '@/contexts/AuthContext';
+import { useNavigate } from 'react-router-dom'; // Import useNavigate
+
 
 interface User {
   id: string;
@@ -35,6 +37,7 @@ const UserManagement = () => {
   const [roleFilter, setRoleFilter] = useState('all');
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  const navigate = useNavigate(); // Initialize useNavigate
 
   const token = localStorage.getItem('auth_token');
 
@@ -248,14 +251,35 @@ const UserManagement = () => {
                         />
                       </DialogContent>
                     </Dialog>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleDeleteUser(user.id)}
-                    >
-                      <Trash2 className="w-4 h-4 mr-2"/>
-                      Delete
-                    </Button>
+                    <Dialog>
+                      <DialogTrigger asChild>
+                        <Button variant="outline" size="sm">
+                          <Trash2 className="w-4 h-4 mr-2" />
+                          Delete
+                        </Button>
+                      </DialogTrigger>
+                      <DialogContent className="max-w-md w-full">
+                        <DialogHeader>
+                          <DialogTitle>Confirm Delete</DialogTitle>
+                        </DialogHeader>
+                        <div className="space-y-4">
+                          <p>Are you sure you want to delete the user <strong>{user.name}</strong>?</p>
+                          <p className="text-sm text-gray-500">This action cannot be undone.</p>
+                          <div className="flex justify-end gap-3">
+                            <Button variant="outline" onClick={() => setSelectedUser(null)}>Cancel</Button>
+                            <Button
+                              variant="destructive"
+                              onClick={() => {
+                                handleDeleteUser(user.id);
+                                setSelectedUser(null);
+                              }}
+                            >
+                              Confirm Delete
+                            </Button>
+                          </div>
+                        </div>
+                      </DialogContent>
+                    </Dialog>
                   </div>
                 )}
               </div>
@@ -297,13 +321,22 @@ const UserManagement = () => {
             </CardContent>
           </Card>
         ))}
-        <div className="flex items-center justify-center">
+        {/* <div className="flex items-center justify-center">
           <Button
             variant="outline"
             className="inline-flex items-center justify-center gap-0 whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2 w-fit h-fit text-lg"
             onClick={() => {
               console.log("View all users clicked");
             }}
+          >
+            View All
+          </Button>
+        </div> */}
+        <div className="flex items-center justify-center">
+          <Button
+            variant="outline"
+            className="inline-flex items-center justify-center gap-0 whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2 w-fit h-fit text-lg"
+            onClick={() => navigate('/userslisting')}
           >
             View All
           </Button>

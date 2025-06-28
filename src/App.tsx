@@ -10,6 +10,7 @@ import Dashboard from "./pages/Dashboard";
 import Login from "./pages/Login";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
+import ListingUser from "./components/users/ListingUser";
 
 const queryClient = new QueryClient();
 
@@ -36,6 +37,14 @@ const AppRoutes = () => {
         element={
           <ProtectedRoute>
             <Dashboard />
+          </ProtectedRoute>
+        } 
+      />
+      <Route 
+        path="/userslisting" 
+        element={
+          <ProtectedRoute requiredPermission="manage_users">
+            <ListingUser />
           </ProtectedRoute>
         } 
       />
