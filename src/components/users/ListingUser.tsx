@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import {
   Card, CardContent, CardDescription, CardHeader, CardTitle,
 } from "@/components/ui/card";
+import Header from '@/components/layout/Header';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -159,183 +160,182 @@ const ListingUser = () => {
   }
 
   return (
-    <div className="space-y-6">
-        {/* <div>
-        <h2 className="text-2xl font-bold text-gray-900">User Listing</h2>
-        <p className="text-gray-600">View all system users</p>
-        </div> */}
-        <div className="flex justify-between items-center">
-            <div>
-                <h2 className="text-2xl font-bold text-gray-900">User Listing</h2>
-                <p className="text-gray-600">View all system users</p>
-            </div>
+    <div className="min-h-screen bg-gray-50">
+      <Header />
+      <div className="space-y-6 p-6">
+        <div className="flex justify-between items-center py-6">
+          <div>
+            <h2 className="text-2xl font-bold text-gray-900">User Listing</h2>
+            {/* <p className="text-gray-600">View all system users</p> */}
+          </div>
+          <div className='flex gap-3'>
             {hasPermission('create_users') && (
-                <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+              <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
                 <DialogTrigger asChild>
-                    <Button>
+                  <Button>
                     <Plus className="w-4 h-4 mr-2" />
                     Add User
-                    </Button>
+                  </Button>
                 </DialogTrigger>
                 <DialogContent className="max-w-md h-[100vh] overflow-y-auto">
-                    <DialogHeader>
+                  <DialogHeader>
                     <DialogTitle>Create New User</DialogTitle>
-                    </DialogHeader>
-                    <CreateUserForm
+                  </DialogHeader>
+                  <CreateUserForm
                     onClose={() => setIsCreateDialogOpen(false)}
                     onUserCreated={fetchUsers}
-                    />
+                  />
                 </DialogContent>
-                </Dialog>
+              </Dialog>
             )}
+            <Button
+            variant="outline" className='h-100'
+            onClick={() => navigate('/dashboard')}
+          >
+            Dashboard
+          </Button>
             </div>
+        </div>
 
 
         {/* Filters */}
         <Card>
-        <CardHeader>
+          <CardHeader>
             <CardTitle>Filters</CardTitle>
-        </CardHeader>
-        <CardContent className="flex gap-4">
+          </CardHeader>
+          <CardContent className="flex gap-4">
             <div className="flex-1">
-            <Input
+              <Input
                 placeholder="Search users..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-            />
+              />
             </div>
             <select
-            className="px-3 py-2 border border-gray-300 rounded-md"
-            value={roleFilter}
-            onChange={(e) => setRoleFilter(e.target.value)}
+              className="px-3 py-2 border border-gray-300 rounded-md"
+              value={roleFilter}
+              onChange={(e) => setRoleFilter(e.target.value)}
             >
-            <option value="all">All Roles</option>
-            <option value="admin">Admin</option>
-            <option value="manager">Manager</option>
-            <option value="agent">Agent</option>
-            </select>
-        </CardContent>
+              <option value="all">All Roles</option>
+              <option value="admin">Admin</option>
+              <option value="manager">Manager</option>
+              <option value="agent">Agent</option>
+            </select>            
+          </CardContent>
         </Card>
 
         {/* Users List */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {filteredUsers.map((user) => (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {filteredUsers.map((user) => (
             <Card key={user.id} className="hover:shadow-lg transition-shadow">
-            <CardHeader>
+              <CardHeader>
                 <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-3">
+                  <div className="flex items-center space-x-3">
                     <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
-                    <User className="w-5 h-5 text-blue-600" />
+                      <User className="w-5 h-5 text-blue-600" />
                     </div>
                     <div>
-                    <CardTitle className="text-lg">{user.name}</CardTitle>
-                    <CardDescription className="flex items-center max-w-[200px] truncate">
+                      <CardTitle className="text-lg">{user.name}</CardTitle>
+                      <CardDescription className="flex items-center max-w-[200px] truncate">
                         <Mail className="w-3 h-3 mr-1 flex-shrink-0" />
                         <span className="truncate">{user.email}</span>
-                    </CardDescription>
+                      </CardDescription>
                     </div>
-                </div>
-                {currentUser?.role === 'admin' && (
+                  </div>
+                  {currentUser?.role === 'admin' && (
                     <div className="flex flex-col space-y-2">
-                    <Dialog>
+                      <Dialog>
                         <DialogTrigger asChild>
-                        <Button variant="outline" size="sm">
+                          <Button variant="outline" size="sm">
                             <Edit className="w-4 h-4 mr-2" />
                             Edit
-                        </Button>
+                          </Button>
                         </DialogTrigger>
                         <DialogContent className="max-w-md w-full">
-                        <DialogHeader>
+                          <DialogHeader>
                             <DialogTitle>Edit User: {user.name}</DialogTitle>
-                        </DialogHeader>
-                        <EditUserForm
+                          </DialogHeader>
+                          <EditUserForm
                             user={user}
-                            onClose={() => {/* No need for setSelectedUser here */}}
+                            onClose={() => {/* No need for setSelectedUser here */ }}
                             onUserUpdated={fetchUsers}
-                        />
+                          />
                         </DialogContent>
-                    </Dialog>
-                    <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+                      </Dialog>
+                      <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
                         <DialogTrigger asChild>
-                        <Button variant="outline" size="sm">
+                          <Button variant="outline" size="sm">
                             <Trash2 className="w-4 h-4 mr-2" />
                             Delete
-                        </Button>
+                          </Button>
                         </DialogTrigger>
                         <DialogContent className="max-w-md w-full">
-                        <DialogHeader>
+                          <DialogHeader>
                             <DialogTitle>Confirm Delete</DialogTitle>
-                        </DialogHeader>
-                        <div className="space-y-4">
+                          </DialogHeader>
+                          <div className="space-y-4">
                             <p>Are you sure you want to delete the user <strong>{user.name}</strong>?</p>
                             <p className="text-sm text-gray-500">This action cannot be undone.</p>
                             <div className="flex justify-end gap-3">
-                            <Button variant="outline" onClick={() => setIsDeleteDialogOpen(false)}>Cancel</Button>
-                            <Button 
-                                variant="destructive" 
+                              <Button variant="outline" onClick={() => setIsDeleteDialogOpen(false)}>Cancel</Button>
+                              <Button
+                                variant="destructive"
                                 onClick={() => {
-                                handleDeleteUser(user.id);
-                                setIsDeleteDialogOpen(false);
+                                  handleDeleteUser(user.id);
+                                  setIsDeleteDialogOpen(false);
                                 }}
-                            >
+                              >
                                 Confirm Delete
-                            </Button>
+                              </Button>
                             </div>
-                        </div>
+                          </div>
                         </DialogContent>
-                    </Dialog>
+                      </Dialog>
                     </div>
-                )}
+                  )}
                 </div>
-            </CardHeader>
-            <CardContent className="space-y-4">
+              </CardHeader>
+              <CardContent className="space-y-4">
                 <div className="flex justify-between items-center">
-                <Badge className={getRoleColor(user.role)}>
+                  <Badge className={getRoleColor(user.role)}>
                     <Shield className="w-3 h-3 mr-1" />
                     {user.role}
-                </Badge>
-                <Badge className={getStatusColor(user.status)}>
+                  </Badge>
+                  <Badge className={getStatusColor(user.status)}>
                     {user.status ? 'Active' : 'Inactive'}
-                </Badge>
+                  </Badge>
                 </div>
 
                 <div className="space-y-2 text-sm">
-                <div className="flex justify-between">
+                  <div className="flex justify-between">
                     <span>Assigned Leads:</span>
                     <span className="font-medium">{user.assignedLeads}</span>
-                </div>
-                <div className="flex justify-between">
+                  </div>
+                  <div className="flex justify-between">
                     <span>Converted:</span>
                     <span className="font-medium text-green-600">{user.convertedLeads}</span>
-                </div>
-                <div className="flex justify-between">
+                  </div>
+                  <div className="flex justify-between">
                     <span>Conversion Rate:</span>
                     <span className="font-medium">
-                    {user.assignedLeads > 0 ? Math.round((user.convertedLeads / user.assignedLeads) * 100) : 0}%
+                      {user.assignedLeads > 0 ? Math.round((user.convertedLeads / user.assignedLeads) * 100) : 0}%
                     </span>
-                </div>
+                  </div>
                 </div>
 
                 <div className="pt-2 border-t text-xs text-gray-500">
-                <div className="flex items-center">
+                  <div className="flex items-center">
                     <Calendar className="w-3 h-3 mr-1" />
                     Last login: {new Date(user.lastLogin).toLocaleDateString()}
+                  </div>
                 </div>
-                </div>
-            </CardContent>
+              </CardContent>
             </Card>
-        ))}
+          ))}
         </div>
-        <div className="flex justify-end">
-        <Button
-            variant="outline"
-            onClick={() => navigate('/dashboard')}
-        >
-            Back to Dashboard
-        </Button>
-        </div>
+      </div>
     </div>
-    );
+  );
 };
 
 export default ListingUser;
