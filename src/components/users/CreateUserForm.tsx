@@ -59,7 +59,7 @@ const CreateUserForm = ({ onClose, onUserCreated }: CreateUserFormProps) => {
           rules={{ required: 'Name is required' }}
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Full Name</FormLabel>
+              <FormLabel className="text-gray-900 dark:text-gray-100">Full Name</FormLabel>
               <FormControl>
                 <Input placeholder="Enter full name" {...field} />
               </FormControl>
@@ -74,7 +74,7 @@ const CreateUserForm = ({ onClose, onUserCreated }: CreateUserFormProps) => {
           rules={{ required: 'Email is required' }}
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Email</FormLabel>
+              <FormLabel className="text-gray-900 dark:text-gray-100">Email</FormLabel>
               <FormControl>
                 <Input type="email" placeholder="Enter email address" {...field} />
               </FormControl>
@@ -89,7 +89,7 @@ const CreateUserForm = ({ onClose, onUserCreated }: CreateUserFormProps) => {
           rules={{ required: 'Phone is required' }}
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Phone Number</FormLabel>
+              <FormLabel className="text-gray-900 dark:text-gray-100">Phone Number</FormLabel>
               <FormControl>
                 <Input placeholder="Enter phone number" {...field} />
               </FormControl>
@@ -104,7 +104,7 @@ const CreateUserForm = ({ onClose, onUserCreated }: CreateUserFormProps) => {
           rules={{ required: 'Role is required' }}
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Role</FormLabel>
+              <FormLabel className="text-gray-900 dark:text-gray-100">Role</FormLabel>
               <Select onValueChange={field.onChange} defaultValue={field.value}>
                 <FormControl>
                   <SelectTrigger>
@@ -128,7 +128,7 @@ const CreateUserForm = ({ onClose, onUserCreated }: CreateUserFormProps) => {
           rules={{ required: 'Status is required' }}
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Status</FormLabel>
+              <FormLabel className="text-gray-900 dark:text-gray-100">Status</FormLabel>
               <Select onValueChange={field.onChange} defaultValue={field.value}>
                 <FormControl>
                   <SelectTrigger>

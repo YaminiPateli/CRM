@@ -11,6 +11,8 @@ import Login from "./pages/Login";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import ListingUser from "./components/users/ListingUser";
+import CreateProjectForm from "./components/projects/CreateProjectForm";
+
 
 const queryClient = new QueryClient();
 
@@ -48,6 +50,15 @@ const AppRoutes = () => {
           </ProtectedRoute>
         } 
       />
+      <Route 
+        path="/projects/create" 
+        element={
+          <ProtectedRoute requiredPermission="create_projects">
+            <CreateProjectForm />
+          </ProtectedRoute>
+        }
+      />
+
       <Route path="*" element={<NotFound />} />
     </Routes>
   );

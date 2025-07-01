@@ -1,12 +1,12 @@
-
 import { useState } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { useNavigate } from 'react-router-dom';
+import {
+  Card, CardContent, CardDescription, CardHeader, CardTitle
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Plus, Building, MapPin, Calendar, Users } from "lucide-react";
-import CreateProjectForm from './CreateProjectForm';
+import { Plus, Building, MapPin, Calendar } from "lucide-react";
 import ProjectDetailsModal from './ProjectDetailsModal';
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -26,6 +26,8 @@ interface Project {
 
 const ProjectManagement = () => {
   const { hasPermission } = useAuth();
+  const navigate = useNavigate();
+
   const [projects, setProjects] = useState<Project[]>([
     {
       id: '1',
@@ -58,7 +60,6 @@ const ProjectManagement = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
-  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isDetailsDialogOpen, setIsDetailsDialogOpen] = useState(false);
 
   const filteredProjects = projects.filter(project => {
@@ -77,15 +78,6 @@ const ProjectManagement = () => {
     }
   };
 
-  const handleProjectCreated = (newProject: Omit<Project, 'id'>) => {
-    const project: Project = {
-      ...newProject,
-      id: Date.now().toString()
-    };
-    setProjects([...projects, project]);
-    setIsCreateDialogOpen(false);
-  };
-
   const handleProjectClick = (project: Project) => {
     setSelectedProject(project);
     setIsDetailsDialogOpen(true);
@@ -100,23 +92,10 @@ const ProjectManagement = () => {
           <p className="text-gray-600">Manage your real estate projects and properties</p>
         </div>
         {hasPermission('create_projects') && (
-          <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
-            <DialogTrigger asChild>
-              <Button>
-                <Plus className="w-4 h-4 mr-2" />
-                New Project
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="max-w-2xl">
-              <DialogHeader>
-                <DialogTitle>Create New Project</DialogTitle>
-              </DialogHeader>
-              <CreateProjectForm 
-                onClose={() => setIsCreateDialogOpen(false)}
-                onProjectCreated={handleProjectCreated}
-              />
-            </DialogContent>
-          </Dialog>
+          <Button onClick={() => navigate('/projects/create')}>
+            <Plus className="w-4 h-4 mr-2" />
+            New Project
+          </Button>
         )}
       </div>
 

@@ -1,172 +1,159 @@
-
-import { useState } from 'react';
-import { Button } from "@/components/ui/button";
+import React, { useState } from "react";
+import Header from '@/components/layout/Header';
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { useForm } from "react-hook-form";
+import { Button } from "@/components/ui/button";
+import { useNavigate } from "react-router-dom";
 
-interface CreateProjectFormProps {
-  onClose: () => void;
-  onProjectCreated: (project: any) => void;
+interface ProjectFormData {
+  name: string;
+  location: string;
+  type: "residential" | "commercial";
+  description: string;
+  totalProperties: number;
+  availableProperties: number;
+  soldProperties: number;
+  startDate: string;
+  status: "planning" | "active" | "completed";
+  totalValue: number;
 }
 
-const CreateProjectForm = ({ onClose, onProjectCreated }: CreateProjectFormProps) => {
-  const form = useForm({
-    defaultValues: {
-      name: '',
-      location: '',
-      type: 'residential',
-      description: '',
-      totalProperties: 0,
-      startDate: '',
-      totalValue: 0
-    }
+const CreateProjectForm: React.FC = () => {
+  const navigate = useNavigate();
+  const [formData, setFormData] = useState<ProjectFormData>({
+    name: "",
+    location: "",
+    type: "residential",
+    description: "",
+    totalProperties: 0,
+    availableProperties: 0,
+    soldProperties: 0,
+    startDate: "",
+    status: "planning",
+    totalValue: 0,
   });
 
-  const onSubmit = (data: any) => {
-    const newProject = {
-      ...data,
-      totalProperties: Number(data.totalProperties),
-      totalValue: Number(data.totalValue),
-      availableProperties: Number(data.totalProperties),
-      soldProperties: 0,
-      status: 'planning'
-    };
-    
-    onProjectCreated(newProject);
-    form.reset();
+  const [loading, setLoading] = useState(false);
+
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
+  ) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      [name]: name.includes("Properties") || name === "totalValue"
+        ? parseInt(value) || 0
+        : value,
+    }));
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+
+    // TODO: Call API or use props to pass project data
+    console.log("Project Submitted:", formData);
+
+    setTimeout(() => {
+      setLoading(false);
+      navigate("/dashboard"); // or use "/projects" if that's your list view
+    }, 1000);
   };
 
   return (
-    <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-        <div className="grid grid-cols-2 gap-4">
-          <FormField
-            control={form.control}
+    <div className="min-h-screen bg-gray-50">
+      <Header />
+      <div className="space-y-6 p-6">
+        <form onSubmit={handleSubmit} className="flex flex-col gap-2 w-fit mx-auto">
+          <Input
             name="name"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Project Name</FormLabel>
-                <FormControl>
-                  <Input placeholder="Enter project name" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
+            placeholder="Project Name"
+            value={formData.name}
+            onChange={handleChange}
+            required
           />
-          
-          <FormField
-            control={form.control}
+          <Input
             name="location"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Location</FormLabel>
-                <FormControl>
-                  <Input placeholder="City, State" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
+            placeholder="Location"
+            value={formData.location}
+            onChange={handleChange}
+            required
           />
-        </div>
-
-        <div className="grid grid-cols-2 gap-4">
-          <FormField
-            control={form.control}
+          <select
             name="type"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Project Type</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value}>
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select type" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    <SelectItem value="residential">Residential</SelectItem>
-                    <SelectItem value="commercial">Commercial</SelectItem>
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )}
+            value={formData.type}
+            onChange={handleChange}
+            className="w-full px-3 py-2 border rounded"
+          >
+            <option value="residential">Residential</option>
+            <option value="commercial">Commercial</option>
+          </select>
+          <Textarea
+            name="description"
+            placeholder="Description"
+            value={formData.description}
+            onChange={handleChange}
+            rows={4}
           />
-          
-          <FormField
-            control={form.control}
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <Input
+              type="number"
+              name="totalProperties"
+              placeholder="Total Properties"
+              value={formData.totalProperties}
+              onChange={handleChange}
+            />
+            <Input
+              type="number"
+              name="availableProperties"
+              placeholder="Available Properties"
+              value={formData.availableProperties}
+              onChange={handleChange}
+            />
+            <Input
+              type="number"
+              name="soldProperties"
+              placeholder="Sold Properties"
+              value={formData.soldProperties}
+              onChange={handleChange}
+            />
+          </div>
+
+          <Input
+            type="date"
             name="startDate"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Start Date</FormLabel>
-                <FormControl>
-                  <Input type="date" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
+            value={formData.startDate}
+            onChange={handleChange}
           />
-        </div>
 
-        <div className="grid grid-cols-2 gap-4">
-          <FormField
-            control={form.control}
-            name="totalProperties"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Total Properties</FormLabel>
-                <FormControl>
-                  <Input type="number" placeholder="0" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          
-          <FormField
-            control={form.control}
+          <select
+            name="status"
+            value={formData.status}
+            onChange={handleChange}
+            className="w-full px-3 py-2 border rounded"
+          >
+            <option value="planning">Planning</option>
+            <option value="active">Active</option>
+            <option value="completed">Completed</option>
+          </select>
+
+          <Input
+            type="number"
             name="totalValue"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Total Value (₹)</FormLabel>
-                <FormControl>
-                  <Input type="number" placeholder="0" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
+            placeholder="Total Value (₹)"
+            value={formData.totalValue}
+            onChange={handleChange}
           />
-        </div>
 
-        <FormField
-          control={form.control}
-          name="description"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Description</FormLabel>
-              <FormControl>
-                <Textarea 
-                  placeholder="Project description..."
-                  className="min-h-20"
-                  {...field} 
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <div className="flex justify-end gap-3 pt-4">
-          <Button type="button" variant="outline" onClick={onClose}>
-            Cancel
-          </Button>
-          <Button type="submit">Create Project</Button>
-        </div>
-      </form>
-    </Form>
+          <div className="pt-4">
+            <Button type="submit" disabled={loading}>
+              {loading ? "Creating..." : "Create Project"}
+            </Button>
+          </div>
+        </form>
+      </div>
+    </div>
   );
 };
 
