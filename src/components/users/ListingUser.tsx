@@ -13,7 +13,15 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { Plus } from "lucide-react";
 import CreateUserForm from './CreateUserForm';
-
+// Import breadcrumb components
+import {
+  Breadcrumb,
+  BreadcrumbList,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from "@/components/ui/breadcrumb";
 interface User {
   id: string;
   name: string;
@@ -163,9 +171,26 @@ const ListingUser = () => {
         <div className="flex justify-between items-center py-6">
           <div>
             <h2 className="text-2xl font-bold text-gray-900">User Listing</h2>
-            <p className="text-gray-600">View all system users</p>
+            {/* <p className="text-gray-600">View all s ystem users</p> */}
+            <Breadcrumb>
+              <BreadcrumbList>
+                <BreadcrumbItem>
+                  <BreadcrumbLink href="/dashboard">Dashboard</BreadcrumbLink>
+                </BreadcrumbItem>
+                <BreadcrumbSeparator />
+                <BreadcrumbItem>
+                  <BreadcrumbPage>User List</BreadcrumbPage>
+                </BreadcrumbItem>
+              </BreadcrumbList>
+            </Breadcrumb>
           </div>
           <div className='flex gap-2'>
+          <Button
+            variant="outline"
+            onClick={() => navigate('/dashboard')}
+          >
+            Dashboard
+          </Button>
           {hasPermission('create_users') && (
             <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
               <DialogTrigger asChild>
@@ -184,13 +209,7 @@ const ListingUser = () => {
                 />
               </DialogContent>
             </Dialog>
-          )}
-            <Button
-            variant="outline"
-            onClick={() => navigate('/dashboard')}
-          >
-            Dashboard
-          </Button>
+          )}            
           </div>
         </div>
 
