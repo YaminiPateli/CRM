@@ -26,6 +26,7 @@ interface User {
   assignedLeads: number;
   convertedLeads: number;
 }
+
 const ListingUser = () => {
   const { hasPermission, user: currentUser } = useAuth();
   const [users, setUsers] = useState<User[]>([]);
@@ -165,7 +166,6 @@ const ListingUser = () => {
             <h2 className="text-2xl font-bold text-gray-900">User Listing</h2>
             <p className="text-gray-600">View all system users</p>
           </div>
-          <div className='flex gap-2'>
           {hasPermission('create_users') && (
             <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
               <DialogTrigger asChild>
@@ -185,13 +185,6 @@ const ListingUser = () => {
               </DialogContent>
             </Dialog>
           )}
-            <Button
-            variant="outline"
-            onClick={() => navigate('/dashboard')}
-          >
-            Dashboard
-          </Button>
-          </div>
         </div>
 
 
@@ -330,7 +323,14 @@ const ListingUser = () => {
             </Card>
           ))}
         </div>
-        
+        <div className="flex justify-center">
+          <Button
+            variant="outline"
+            onClick={() => navigate('/dashboard')}
+          >
+            Back to Dashboard
+          </Button>
+        </div>
       </div>
     </div>
   );
