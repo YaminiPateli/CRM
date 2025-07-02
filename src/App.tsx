@@ -12,6 +12,7 @@ import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import ListingUser from "./components/users/ListingUser";
 import CreateProjectForm from "./components/projects/CreateProjectForm";
+import Layout from "./components/layout/Layout"; // Import the new Layout
 
 
 const queryClient = new QueryClient();
@@ -37,8 +38,10 @@ const AppRoutes = () => {
       <Route 
         path="/dashboard" 
         element={
-          <ProtectedRoute>
-            <Dashboard />
+          <ProtectedRoute> 
+            <Layout>
+              <Dashboard />
+            </Layout>
           </ProtectedRoute>
         } 
       />
@@ -46,7 +49,9 @@ const AppRoutes = () => {
         path="/userslisting" 
         element={
           <ProtectedRoute requiredPermission="manage_users">
-            <ListingUser />
+            <Layout>
+              <ListingUser />
+              </Layout>
           </ProtectedRoute>
         } 
       />
@@ -54,7 +59,9 @@ const AppRoutes = () => {
         path="/projects/create" 
         element={
           <ProtectedRoute requiredPermission="create_projects">
+            <Layout>
             <CreateProjectForm />
+            </Layout>
           </ProtectedRoute>
         }
       />
