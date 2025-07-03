@@ -29,23 +29,35 @@ router.get('/', authenticateToken, async (req, res) => {
 // Create project
 router.post('/', authenticateToken, async (req, res) => {
   try {
-    if (req.user.role === 'agent') {
-      return res.status(403).json({ error: 'Insufficient permissions' });
-    }
-
-    const { name, description, location, type, start_date, end_date, total_units } = req.body;
+    const {
+      name, description, rera_project_id, sales, possession, search_address,
+      address, street, country, state, city, zip, locality, latitude, longitude
+    } = req.body;
 
     const result = await pool.query(`
-      INSERT INTO projects (name, description, location, type, start_date, end_date, total_units, created_by)
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+      INSERT INTO projects (
+        name, description, rera_project_id, sales, possession, search_address,
+        address, street, country, state, city, zip, locality, latitude,
+        longitude, created_by
+      )
+      VALUES (
+        $1, $2, $3, $4, $5, $6,
+        $7, $8, $9, $10, $11, $12, $13, $14,
+        $15, $16
+      )
       RETURNING *
-    `, [name, description, location, type || 'residential', start_date, end_date, total_units, req.user.id]);
+    `, [
+      name, description, rera_project_id, sales, possession, search_address,
+      address, street, country, state, city, zip, locality, latitude,
+      longitude, req.user.id
+    ]);
 
     res.status(201).json(result.rows[0]);
   } catch (error) {
     console.error('Error creating project:', error);
-    res.status(500).json({ error: 'Server error' });
+    res.status(500).json({ error: 'Failed to create project' });
   }
 });
+
 
 export default router;

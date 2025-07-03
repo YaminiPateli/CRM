@@ -1,159 +1,94 @@
-import React, { useState } from "react";
-import Header from '@/components/layout/Header';
+import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from '@/contexts/AuthContext';
 
-interface ProjectFormData {
-  name: string;
-  location: string;
-  type: "residential" | "commercial";
-  description: string;
-  totalProperties: number;
-  availableProperties: number;
-  soldProperties: number;
-  startDate: string;
-  status: "planning" | "active" | "completed";
-  totalValue: number;
-}
-
-const CreateProjectForm: React.FC = () => {
+const CreateProjectForm = () => {
   const navigate = useNavigate();
-  const [formData, setFormData] = useState<ProjectFormData>({
-    name: "",
-    location: "",
-    type: "residential",
-    description: "",
-    totalProperties: 0,
-    availableProperties: 0,
-    soldProperties: 0,
-    startDate: "",
-    status: "planning",
-    totalValue: 0,
+  const { user } = useAuth();
+  const [loading, setLoading] = useState(false);
+  const [formData, setFormData] = useState({
+    name: '',
+    description: '',
+    rera_project_id: '',
+    sales: '',
+    possession: '',
+    search_address: '',
+    address: '',
+    street: '',
+    country: '',
+    state: '',
+    city: '',
+    zip: '',
+    locality: '',
+    latitude: '',
+    longitude: ''
   });
 
-  const [loading, setLoading] = useState(false);
+  const salesOptions = [
+    { value: '', label: 'All' },
+    { value: '', label: 'None' },
+    { value: 'nancy_gandhi', label: 'NANCY GANDHI (Sales) (Sales Team)' },
+    { value: 'hardik_shah', label: 'HARDIK SHAH (Manager) (Sales Team)' }
+  ];
 
-  const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
-  ) => {
+  const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: name.includes("Properties") || name === "totalValue"
-        ? parseInt(value) || 0
-        : value,
-    }));
+    setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
 
-    // TODO: Call API or use props to pass project data
-    console.log("Project Submitted:", formData);
+    try {
+      const token = localStorage.getItem('auth_token');
+      const response = await fetch('http://localhost:3001/api/projects', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          ...formData,
+          created_by: user?.id,
+          is_active: true,
+          created_at: new Date().toISOString()
+        })
+      });
 
-    setTimeout(() => {
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to create project');
+      }
+
+      const project = await response.json();
+      console.log("Created:", project);
+      navigate('/dashboard'); // Redirect to /dashboard (mapped to ProjectManagement)
+    } catch (error) {
+      alert(error.message);
+    } finally {
       setLoading(false);
-      navigate("/dashboard"); // or use "/projects" if that's your list view
-    }, 1000);
+    }
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <Header />
-      <div className="space-y-6 p-6">
-        <form onSubmit={handleSubmit} className="flex flex-col gap-2 w-fit mx-auto">
-          <Input
-            name="name"
-            placeholder="Project Name"
-            value={formData.name}
-            onChange={handleChange}
-            required
-          />
-          <Input
-            name="location"
-            placeholder="Location"
-            value={formData.location}
-            onChange={handleChange}
-            required
-          />
-          <select
-            name="type"
-            value={formData.type}
-            onChange={handleChange}
-            className="w-full px-3 py-2 border rounded"
-          >
-            <option value="residential">Residential</option>
-            <option value="commercial">Commercial</option>
-          </select>
-          <Textarea
-            name="description"
-            placeholder="Description"
-            value={formData.description}
-            onChange={handleChange}
-            rows={4}
-          />
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <Input
-              type="number"
-              name="totalProperties"
-              placeholder="Total Properties"
-              value={formData.totalProperties}
-              onChange={handleChange}
-            />
-            <Input
-              type="number"
-              name="availableProperties"
-              placeholder="Available Properties"
-              value={formData.availableProperties}
-              onChange={handleChange}
-            />
-            <Input
-              type="number"
-              name="soldProperties"
-              placeholder="Sold Properties"
-              value={formData.soldProperties}
-              onChange={handleChange}
-            />
-          </div>
-
-          <Input
-            type="date"
-            name="startDate"
-            value={formData.startDate}
-            onChange={handleChange}
-          />
-
-          <select
-            name="status"
-            value={formData.status}
-            onChange={handleChange}
-            className="w-full px-3 py-2 border rounded"
-          >
-            <option value="planning">Planning</option>
-            <option value="active">Active</option>
-            <option value="completed">Completed</option>
-          </select>
-
-          <Input
-            type="number"
-            name="totalValue"
-            placeholder="Total Value (₹)"
-            value={formData.totalValue}
-            onChange={handleChange}
-          />
-
-          <div className="pt-4">
-            <Button type="submit" disabled={loading}>
-              {loading ? "Creating..." : "Create Project"}
-            </Button>
-          </div>
-        </form>
-      </div>
-    </div>
+    <form onSubmit={handleSubmit} className="space-y-4 max-w-3xl mx-auto p-6">
+      <div><label>Project Name (name)</label><Input name="name" placeholder="Project Name" value={formData.name} onChange={handleChange} required /></div>
+      <div><label>Description (description)</label><Textarea name="description" placeholder="Description" value={formData.description} onChange={handleChange} /></div>
+      <div><label>RERA Project ID (rera_project_id)</label><Input name="rera_project_id" placeholder="RERA Project ID" value={formData.rera_project_id} onChange={handleChange} /></div>
+      <div><label>Sales Channel (sales)</label><select name="sales" value={formData.sales} onChange={handleChange} className="w-full px-3 py-2 border border-gray-300 rounded-md" style={{ backgroundColor: formData.sales ? '#6B46C1' : 'transparent', color: formData.sales ? '#FFFFFF' : '#6B7280' }}><option value="">All</option><option value="">None</option><option value="nancy_gandhi">NANCY GANDHI (Sales) (Sales Team)</option><option value="hardik_shah">HARDIK SHAH (Manager) (Sales Team)</option></select></div>
+      <div><label>Possession (possession)</label><Input type="date" name="possession" value={formData.possession} onChange={handleChange} /></div>
+      <div><label>Search Address (search_address)</label><Input name="search_address" placeholder="Search Address" value={formData.search_address} onChange={handleChange} /></div>
+      <div><label>Address (address)</label><Textarea name="address" placeholder="Full Address" value={formData.address} onChange={handleChange} /></div>
+      <div className="flex gap-4"><div className="flex-1"><label>Street (street)</label><Input name="street" placeholder="Street" value={formData.street} onChange={handleChange} /></div><div className="flex-1"><label>Country (country)</label><Input name="country" placeholder="Country" value={formData.country} onChange={handleChange} required /></div></div>
+      <div className="flex gap-4"><div className="flex-1"><label>State (state)</label><Input name="state" placeholder="State" value={formData.state} onChange={handleChange} required /></div><div className="flex-1"><label>City (city)</label><Input name="city" placeholder="City" value={formData.city} onChange={handleChange} required /></div></div>
+      <div className="flex gap-4"><div className="flex-1"><label>Zip Code (zip)</label><Input name="zip" placeholder="Zip Code" value={formData.zip} onChange={handleChange} /></div><div className="flex-1"><label>Locality (locality)</label><Input name="locality" placeholder="Locality" value={formData.locality} onChange={handleChange} /></div></div>
+      <div className="flex gap-4"><div className="flex-1"><label>Latitude (latitude)</label><Input type="number" step="any" name="latitude" placeholder="Latitude" value={formData.latitude} onChange={handleChange} /></div><div className="flex-1"><label>Longitude (longitude)</label><Input type="number" step="any" name="longitude" placeholder="Longitude" value={formData.longitude} onChange={handleChange} /></div></div>
+      <Button type="submit" disabled={loading}>{loading ? "Creating..." : "Create Project"}</Button>
+    </form>
   );
 };
 
