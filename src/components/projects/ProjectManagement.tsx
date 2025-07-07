@@ -1,4 +1,5 @@
-import { useState } from 'react';
+// src/components/projects/ProjectManagement.tsx
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Card, CardContent, CardDescription, CardHeader, CardTitle
@@ -6,179 +7,188 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Building, MapPin, Calendar } from "lucide-react";
+import { Plus, Building, MapPin, Calendar, Edit2, Trash2 } from "lucide-react";
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel,
+  AlertDialogContent, AlertDialogDescription,
+  AlertDialogFooter, AlertDialogHeader, AlertDialogTitle
+} from "@/components/ui/alert-dialog";
 import ProjectDetailsModal from './ProjectDetailsModal';
 import { useAuth } from '@/contexts/AuthContext';
-
-interface Project {
-  id: string;
-  name: string;
-  location: string;
-  type: 'residential' | 'commercial';
-  description: string;
-  totalProperties: number;
-  availableProperties: number;
-  soldProperties: number;
-  startDate: string;
-  status: 'planning' | 'active' | 'completed';
-  totalValue: number;
-}
+import { useToast } from "@/components/ui/use-toast";
 
 const ProjectManagement = () => {
   const { hasPermission } = useAuth();
+  const { toast } = useToast();
   const navigate = useNavigate();
-
-  const [projects, setProjects] = useState<Project[]>([
-    {
-      id: '1',
-      name: 'Sunset Residency',
-      location: 'Mumbai, Maharashtra',
-      type: 'residential',
-      description: 'Premium residential complex with modern amenities',
-      totalProperties: 120,
-      availableProperties: 45,
-      soldProperties: 75,
-      startDate: '2024-01-15',
-      status: 'active',
-      totalValue: 50000000
-    },
-    {
-      id: '2',
-      name: 'Tech Park Plaza',
-      location: 'Bangalore, Karnataka',
-      type: 'commercial',
-      description: 'State-of-the-art commercial complex',
-      totalProperties: 80,
-      availableProperties: 30,
-      soldProperties: 50,
-      startDate: '2023-06-01',
-      status: 'active',
-      totalValue: 120000000
-    }
-  ]);
-
+  const [projects, setProjects] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState('all');
-  const [selectedProject, setSelectedProject] = useState<Project | null>(null);
+  const [selectedProject, setSelectedProject] = useState(null);
   const [isDetailsDialogOpen, setIsDetailsDialogOpen] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [projectToDelete, setProjectToDelete] = useState(null);
 
-  const filteredProjects = projects.filter(project => {
-    const matchesSearch = project.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         project.location.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesStatus = statusFilter === 'all' || project.status === statusFilter;
-    return matchesSearch && matchesStatus;
-  });
+  useEffect(() => {
+    fetchProjects();
+  }, []);
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'planning': return 'bg-yellow-100 text-yellow-800';
-      case 'active': return 'bg-green-100 text-green-800';
-      case 'completed': return 'bg-blue-100 text-blue-800';
-      default: return 'bg-gray-100 text-gray-800';
+  const fetchProjects = async () => {
+    try {
+      const token = localStorage.getItem('auth_token');
+      const res = await fetch('http://localhost:3001/api/projects', {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (!res.ok) throw new Error('Failed to fetch projects');
+      const data = await res.json();
+      setProjects(data.data || []);
+    } catch (err) {
+      console.error('Error:', err);
+      toast({
+        title: "Error",
+        description: "Failed to fetch projects.",
+        variant: "destructive"
+      });
+    } finally {
+      setLoading(false);
     }
   };
 
-  const handleProjectClick = (project: Project) => {
+  const handleDeleteProject = async (project) => {
+    try {
+      const token = localStorage.getItem('auth_token');
+      const res = await fetch(`http://localhost:3001/api/projects/${project.id}`, {
+        method: 'DELETE',
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.error || 'Failed to delete project');
+      }
+      setProjects(projects.filter(p => p.id !== project.id));
+      setDeleteDialogOpen(false);
+      setProjectToDelete(null);
+      toast({
+        title: "Success",
+        description: `Project "${project.name}" has been deleted.`,
+      });
+    } catch (err) {
+      toast({
+        title: "Error",
+        description: err.message || 'Failed to delete project',
+        variant: "destructive"
+      });
+    }
+  };
+
+  const filteredProjects = projects.filter(project =>
+    project.name.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  const handleEditProject = (project) => {
+    navigate(`/projects/edit/${project.id}`);
+  };
+
+  const handleViewDetails = (project) => {
     setSelectedProject(project);
     setIsDetailsDialogOpen(true);
   };
 
   return (
     <div className="space-y-6">
-      {/* Header */}
       <div className="flex justify-between items-center">
-        <div>
-          <h2 className="text-2xl font-bold text-gray-900">Project Management</h2>
-          <p className="text-gray-600">Manage your real estate projects and properties</p>
-        </div>
+        <h2 className="text-2xl font-bold">Project Management</h2>
         {hasPermission('create_projects') && (
           <Button onClick={() => navigate('/projects/create')}>
-            <Plus className="w-4 h-4 mr-2" />
-            New Project
+            <Plus className="w-4 h-4 mr-2" /> New Project
           </Button>
         )}
       </div>
 
-      {/* Filters */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Filters</CardTitle>
-        </CardHeader>
-        <CardContent className="flex gap-4">
-          <div className="flex-1">
-            <Input
-              placeholder="Search projects..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
-          </div>
-          <select
-            className="px-3 py-2 border border-gray-300 rounded-md"
-            value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value)}
-          >
-            <option value="all">All Status</option>
-            <option value="planning">Planning</option>
-            <option value="active">Active</option>
-            <option value="completed">Completed</option>
-          </select>
-        </CardContent>
-      </Card>
+      <Input
+        placeholder="Search projects..."
+        value={searchTerm}
+        onChange={e => setSearchTerm(e.target.value)}
+      />
 
-      {/* Projects Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {filteredProjects.map((project) => (
-          <Card key={project.id} className="hover:shadow-lg transition-shadow cursor-pointer" onClick={() => handleProjectClick(project)}>
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <CardTitle className="text-lg">{project.name}</CardTitle>
-                <Badge className={getStatusColor(project.status)}>
-                  {project.status}
-                </Badge>
-              </div>
-              <CardDescription className="flex items-center text-sm text-gray-600">
-                <MapPin className="w-4 h-4 mr-1" />
-                {project.location}
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex items-center gap-2">
-                <Building className="w-4 h-4 text-gray-500" />
-                <span className="text-sm capitalize">{project.type}</span>
-              </div>
-              
-              <div className="space-y-2">
-                <div className="flex justify-between text-sm">
-                  <span>Total Properties:</span>
-                  <span className="font-medium">{project.totalProperties}</span>
+      {loading ? (
+        <div className="flex items-center justify-center h-64">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {filteredProjects.map(project => (
+            <Card key={project.id}>
+              <CardHeader>
+                <div className="flex justify-between items-center">
+                  <CardTitle 
+                    className="cursor-pointer hover:text-blue-600" 
+                    onClick={() => handleViewDetails(project)}
+                  >
+                    {project.name}
+                  </CardTitle>
+                  <div className="flex gap-2">
+                    {hasPermission('edit_projects') && (
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        onClick={() => handleEditProject(project)}
+                      >
+                        <Edit2 className="w-4 h-4 mr-1" /> Edit
+                      </Button>
+                    )}
+                    {hasPermission('delete_projects') && (
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        onClick={() => {
+                          setProjectToDelete(project);
+                          setDeleteDialogOpen(true);
+                        }} 
+                        className="text-red-600 border-red-600 hover:bg-red-100"
+                      >
+                        <Trash2 className="w-4 h-4 mr-1" /> Delete
+                      </Button>
+                    )}
+                  </div>
                 </div>
-                <div className="flex justify-between text-sm">
-                  <span>Available:</span>
-                  <span className="font-medium text-green-600">{project.availableProperties}</span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span>Sold:</span>
-                  <span className="font-medium text-blue-600">{project.soldProperties}</span>
-                </div>
-              </div>
+                <CardDescription>
+                  <MapPin className="w-4 h-4 inline mr-1" />
+                  {project.city}, {project.state}
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm text-gray-600">{project.description}</p>
+                <p className="text-sm">
+                  <Calendar className="w-4 h-4 inline mr-1" />
+                  Possession: {project.possession ? new Date(project.possession).toLocaleDateString() : 'N/A'}
+                </p>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      )}
 
-              <div className="pt-2 border-t">
-                <div className="flex justify-between items-center text-sm">
-                  <span className="flex items-center">
-                    <Calendar className="w-4 h-4 mr-1" />
-                    Started: {new Date(project.startDate).toLocaleDateString()}
-                  </span>
-                  <span className="font-bold text-lg">
-                    ₹{(project.totalValue / 10000000).toFixed(1)}Cr
-                  </span>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete the project "{projectToDelete?.name}". The project can be restored later.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={() => handleDeleteProject(projectToDelete)} 
+              className="bg-red-600 hover:bg-red-700"
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
-      {/* Project Details Modal */}
       {selectedProject && (
         <ProjectDetailsModal
           project={selectedProject}
