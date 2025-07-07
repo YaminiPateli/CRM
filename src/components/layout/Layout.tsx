@@ -3,7 +3,7 @@ import React, { ReactNode } from 'react';
 import { Outlet } from 'react-router-dom';
 import { SidebarProvider, Sidebar, SidebarContent, SidebarHeader, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarTrigger } from '@/components/ui/sidebar';
 import Header from './Header'; // Assuming you have this
-import { Home, Users, PlusCircle } from 'lucide-react';
+import { Home, Users, PlusCircle, NewspaperIcon } from 'lucide-react';
 
 interface LayoutProps {
     children?: ReactNode; // Explicitly define children prop
@@ -31,7 +31,7 @@ const Layout = ({ children }: LayoutProps) => {
         {/* Sidebar */}
         <Sidebar side="left" collapsible="icon">
           <SidebarHeader>
-            <h2 className="text-lg font-bold text-sidebar-foreground">Menu</h2>
+            <h2 className="text-lg font-bold text-sidebar-foreground"><NewspaperIcon className="h-5 w-4"/></h2>
           </SidebarHeader>
           <SidebarContent>
             <SidebarMenu>
