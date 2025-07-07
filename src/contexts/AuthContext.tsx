@@ -20,7 +20,7 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 const rolePermissions = {
-  admin: ['view_leads', 'create_leads', 'assign_leads', 'create_projects', 'create_users', 'view_reports', 'export_reports', 'manage_users'],
+  admin: ['view_leads', 'create_leads', 'assign_leads', 'create_projects', 'edit_projects','delete_projects', 'create_users', 'view_reports', 'export_reports', 'manage_users'],
   manager: ['view_leads', 'create_leads', 'assign_leads', 'create_projects', 'view_reports', 'export_reports'],
   agent: ['view_leads', 'create_leads', 'view_reports_limited']
 };

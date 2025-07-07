@@ -12,6 +12,7 @@ import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import ListingUser from "./components/users/ListingUser";
 import CreateProjectForm from "./components/projects/CreateProjectForm";
+import EditProjectForm from "./components/projects/EditProjectForm";
 import Layout from "./components/layout/Layout"; // Import the new Layout
 
 
@@ -65,7 +66,16 @@ const AppRoutes = () => {
           </ProtectedRoute>
         }
       />
-
+      <Route 
+        path="/projects/edit/:id" 
+        element={
+          <ProtectedRoute requiredPermission="edit_projects">
+            <Layout>
+              <EditProjectForm />
+            </Layout>
+          </ProtectedRoute>
+        }
+      />
       <Route path="*" element={<NotFound />} />
     </Routes>
   );
