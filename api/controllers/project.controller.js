@@ -34,34 +34,6 @@ export const getProjectById = async (req, res) => {
   }
 };
 
-// export const createProject = async (req, res) => {
-//   const {
-//     name, description, rera_project_id, sales, possession, search_address,
-//     address, street, country, state, city, zip, locality, latitude, longitude
-//   } = req.body;
-
-//   try {
-//     const result = await pool.query(`
-//       INSERT INTO projects (
-//         name, description, rera_project_id, sales, possession, search_address,
-//         address, street, country, state, city, zip, locality, latitude,
-//         longitude, created_by
-//       ) VALUES (
-//         $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16
-//       ) RETURNING *
-//     `, [
-//       name, description, rera_project_id, sales, possession, search_address,
-//       address, street, country, state, city, zip, locality, latitude,
-//       longitude, req.user.id
-//     ]);
-//     res.status(201).json(result.rows[0]);
-//   } catch (error) {
-//     console.error(error);
-//     res.status(500).json({ error: 'Failed to create project' });
-//   }
-// };
-
-
 export const createProject = async (req, res) => {
   const {
     name, description, rera_project_id, sales, possession, search_address,
@@ -94,22 +66,27 @@ export const updateProject = async (req, res) => {
   const { id } = req.params;
   const {
     name, description, rera_project_id, sales, possession, search_address,
-    address, street, country, state, city, zip, locality, latitude, longitude
+    address, street, country, state, city, zip, locality, latitude, longitude,
+    is_active
   } = req.body;
 
   try {
+    // Ensure is_active is treated as a boolean
+    const activeValue = is_active === 'true' || is_active === true ? true : false;
+
     const result = await pool.query(`
       UPDATE projects SET
         name=$1, description=$2, rera_project_id=$3, sales=$4, possession=$5,
         search_address=$6, address=$7, street=$8, country=$9, state=$10,
         city=$11, zip=$12, locality=$13, latitude=$14, longitude=$15,
+        is_active=$16,
         updated_at = CURRENT_TIMESTAMP
-      WHERE id=$16 AND deleted_at IS NULL
+      WHERE id=$17 AND deleted_at IS NULL
       RETURNING *
     `, [
       name, description, rera_project_id, sales, possession, search_address,
       address, street, country, state, city, zip, locality, latitude,
-      longitude, id
+      longitude, activeValue, id
     ]);
 
     if (result.rows.length === 0) return res.status(404).json({ error: 'Not found' });
@@ -121,12 +98,10 @@ export const updateProject = async (req, res) => {
   }
 };
 
-// In controllers/project.controller.js
 export const deleteProject = async (req, res) => {
   const { id } = req.params;
 
   try {
-    // Log project ID being deleted
     console.log(`Deleting project with ID: ${id}`);
 
     const result = await pool.query(`
@@ -150,4 +125,3 @@ export const deleteProject = async (req, res) => {
     res.status(500).json({ error: 'Failed to delete project' });
   }
 };
-

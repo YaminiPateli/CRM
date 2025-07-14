@@ -31,7 +31,7 @@ const Layout = ({ children }: LayoutProps) => {
         {/* Sidebar */}
         <Sidebar side="left" collapsible="icon">
           <SidebarHeader>
-            <h2 className="text-lg font-bold text-sidebar-foreground">Menu</h2>
+            {/* <h2 className="text-lg font-bold text-sidebar-foreground">Menu</h2> */}
           </SidebarHeader>
           <SidebarContent>
             <SidebarMenu>

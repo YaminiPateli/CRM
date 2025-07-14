@@ -218,12 +218,12 @@ const UserManagement = () => {
         {filteredUsers.slice(0, 5).map((user) => (
           <Card key={user.id} className="hover:shadow-lg transition-shadow">
             <CardHeader>
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-3">
+              <div className="flex items-center justify-center">
+                <div className="flex items-center flex-col space-x-3">
                   <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
                     <User className="w-5 h-5 text-blue-600" />
                   </div>
-                  <div>
+                  <div className="text-center">
                     <CardTitle className="text-lg">{user.name}</CardTitle>
                     <CardDescription className="flex items-center max-w-[200px] truncate">
                       <Mail className="w-3 h-3 mr-1 flex-shrink-0" />
@@ -231,57 +231,6 @@ const UserManagement = () => {
                     </CardDescription>
                   </div>
                 </div>
-                {currentUser?.role === 'admin' && (
-                  <div className="flex flex-col space-y-2">
-                    <Dialog>
-                      <DialogTrigger asChild>
-                        <Button variant="outline" size="sm">
-                          <Edit className="w-4 h-4 mr-2" />
-                          Edit
-                        </Button>
-                      </DialogTrigger>
-                      <DialogContent className="max-w-md w-full">
-                        <DialogHeader>
-                          <DialogTitle>Edit User: {user.name}</DialogTitle>
-                        </DialogHeader>
-                        <EditUserForm
-                          user={user}
-                          onClose={() => setSelectedUser(null)}
-                          onUserUpdated={fetchUsers}
-                        />
-                      </DialogContent>
-                    </Dialog>
-                    <Dialog>
-                      <DialogTrigger asChild>
-                        <Button variant="outline" size="sm">
-                          <Trash2 className="w-4 h-4 mr-2" />
-                          Delete
-                        </Button>
-                      </DialogTrigger>
-                      <DialogContent className="max-w-md w-full">
-                        <DialogHeader>
-                          <DialogTitle>Confirm Delete</DialogTitle>
-                        </DialogHeader>
-                        <div className="space-y-4">
-                          <p>Are you sure you want to delete the user <strong>{user.name}</strong>?</p>
-                          <p className="text-sm text-gray-500">This action cannot be undone.</p>
-                          <div className="flex justify-end gap-3">
-                            <Button variant="outline" onClick={() => setSelectedUser(null)}>Cancel</Button>
-                            <Button
-                              variant="destructive"
-                              onClick={() => {
-                                handleDeleteUser(user.id);
-                                setSelectedUser(null);
-                              }}
-                            >
-                              Confirm Delete
-                            </Button>
-                          </div>
-                        </div>
-                      </DialogContent>
-                    </Dialog>
-                  </div>
-                )}
               </div>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -312,11 +261,60 @@ const UserManagement = () => {
                 </div>
               </div>
 
-              <div className="pt-2 border-t text-xs text-gray-500">
-                <div className="flex items-center">
+              <div className="pt-2 border-t text-xs text-gray-500 flex justify-between items-center">
+                <div className="flex items-center justify-center text-xs text-gray-500">
                   <Calendar className="w-3 h-3 mr-1" />
                   Last login: {new Date(user.lastLogin).toLocaleDateString()}
                 </div>
+                {currentUser?.role === 'admin' && (
+                  <div className="flex space-x-2">
+                    <Dialog>
+                      <DialogTrigger asChild>
+                        <Button variant="outline" size="sm" className='border-0 p-1'>
+                          <Edit className="w-2 h-2" />
+                        </Button>
+                      </DialogTrigger>
+                      <DialogContent className="max-w-md w-full">
+                        <DialogHeader>
+                          <DialogTitle>Edit User: {user.name}</DialogTitle>
+                        </DialogHeader>
+                        <EditUserForm
+                          user={user}
+                          onClose={() => setSelectedUser(null)}
+                          onUserUpdated={fetchUsers}
+                        />
+                      </DialogContent>
+                    </Dialog>
+                    <Dialog>
+                      <DialogTrigger asChild>
+                        <Button variant="outline" size="sm" className='border-0'>
+                          <Trash2 className="w-2 h-2" />
+                        </Button>
+                      </DialogTrigger>
+                      <DialogContent className="max-w-md w-full">
+                        <DialogHeader>
+                          <DialogTitle>Confirm Delete</DialogTitle>
+                        </DialogHeader>
+                        <div className="space-y-4">
+                          <p>Are you sure you want to delete the user <strong>{user.name}</strong>?</p>
+                          <p className="text-sm text-gray-500">This action cannot be undone.</p>
+                          <div className="flex justify-end gap-3">
+                            <Button variant="outline" onClick={() => setSelectedUser(null)}>Cancel</Button>
+                            <Button
+                              variant="destructive"
+                              onClick={() => {
+                                handleDeleteUser(user.id);
+                                setSelectedUser(null);
+                              }}
+                            >
+                              Confirm Delete
+                            </Button>
+                          </div>
+                        </div>
+                      </DialogContent>
+                    </Dialog>
+                  </div>
+                )}
               </div>
             </CardContent>
           </Card>

@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { useForm } from "react-hook-form";
@@ -18,27 +17,31 @@ const CreateUserForm = ({ onClose, onUserCreated }: CreateUserFormProps) => {
       email: '',
       phone: '',
       role: 'agent',
-      status: 'true'
+      status: 'true',
     }
   });
+
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const onSubmit = async (data: any) => {
     setLoading(true);
     setError(null);
+
     try {
       const response = await fetch('http://localhost:3001/api/users', {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
+          'Content-Type': 'application/json'
         },
         body: JSON.stringify(data),
       });
+
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(errorData.error || 'Failed to create user');
       }
+
       const createdUser = await response.json();
       form.reset();
       onUserCreated(createdUser);
@@ -67,7 +70,7 @@ const CreateUserForm = ({ onClose, onUserCreated }: CreateUserFormProps) => {
             </FormItem>
           )}
         />
-        
+
         <FormField
           control={form.control}
           name="email"
@@ -115,6 +118,7 @@ const CreateUserForm = ({ onClose, onUserCreated }: CreateUserFormProps) => {
                   <SelectItem value="admin">Admin</SelectItem>
                   <SelectItem value="manager">Manager</SelectItem>
                   <SelectItem value="agent">Agent</SelectItem>
+                  <SelectItem value="user(sales)">User (Sales)</SelectItem>
                 </SelectContent>
               </Select>
               <FormMessage />
@@ -151,6 +155,7 @@ const CreateUserForm = ({ onClose, onUserCreated }: CreateUserFormProps) => {
           </Button>
           <Button type="submit" disabled={loading}>Create User</Button>
         </div>
+
         {error && <p className="text-red-600 text-sm">{error}</p>}
       </form>
     </Form>

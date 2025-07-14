@@ -1,4 +1,3 @@
-
 import express from 'express';
 import cors from 'cors';
 import { fileURLToPath } from 'url';
@@ -37,15 +36,15 @@ app.use(cors({
   credentials: true,
 }));
 app.use(express.json());
+app.use(express.urlencoded({ extended: true })); // Parse URL-encoded data
+app.use(express.static(join(__dirname, 'public'))); // Serve static files from public directory
 
 // Routes
-
 app.use('/api/auth', authRoutes);
 app.use('/api/leads', leadsRoutes);
 app.use('/api/projects', projectsRoutes);
 app.use('/', utilsRoutes);
 app.use('/api', userRoutes);
-
 
 // Start server
 app.listen(port, () => {

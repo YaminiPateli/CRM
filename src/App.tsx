@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -11,10 +10,11 @@ import Login from "./pages/Login";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import ListingUser from "./components/users/ListingUser";
+import ListingProject from "./components/projects/ListingProject"; // Import the new component
 import CreateProjectForm from "./components/projects/CreateProjectForm";
 import EditProjectForm from "./components/projects/EditProjectForm";
-import Layout from "./components/layout/Layout"; // Import the new Layout
-
+import ProjectManagement from "./components/projects/ProjectManagement"; // Import ProjectManagement
+import Layout from "./components/layout/Layout";
 
 const queryClient = new QueryClient();
 
@@ -47,12 +47,22 @@ const AppRoutes = () => {
         } 
       />
       <Route 
+        path="/projects" 
+        element={
+          <ProtectedRoute requiredPermission="manage_project">
+            <Layout>
+              <ListingProject />
+            </Layout>
+          </ProtectedRoute>
+        } 
+      />
+      <Route 
         path="/userslisting" 
         element={
           <ProtectedRoute requiredPermission="manage_users">
             <Layout>
               <ListingUser />
-              </Layout>
+            </Layout>
           </ProtectedRoute>
         } 
       />
@@ -61,7 +71,7 @@ const AppRoutes = () => {
         element={
           <ProtectedRoute requiredPermission="create_projects">
             <Layout>
-            <CreateProjectForm />
+              <CreateProjectForm />
             </Layout>
           </ProtectedRoute>
         }
@@ -75,6 +85,16 @@ const AppRoutes = () => {
             </Layout>
           </ProtectedRoute>
         }
+      />
+      <Route 
+        path="/projectmanagement" 
+        element={
+          <ProtectedRoute requiredPermission="manage_project">
+            <Layout>
+              <ProjectManagement />
+            </Layout>
+          </ProtectedRoute>
+        } 
       />
       <Route path="*" element={<NotFound />} />
     </Routes>

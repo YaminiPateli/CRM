@@ -1,12 +1,12 @@
-// src/components/projects/EditProjectForm.tsx
 import { useState, useEffect, useRef } from "react";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { useNavigate, useParams } from "react-router-dom";
 import { useAuth } from '@/contexts/AuthContext';
 import { ArrowLeft, MapPin, X } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
+import ReactQuill from 'react-quill';
+import 'react-quill/dist/quill.snow.css';
 
 interface AddressSuggestion {
   place_id: string;
@@ -14,6 +14,7 @@ interface AddressSuggestion {
   address: {
     house_number?: string;
     road?: string;
+    highway?: string;
     neighbourhood?: string;
     suburb?: string;
     city?: string;
@@ -169,11 +170,12 @@ const EditProjectForm = () => {
 
   const handleAddressSelect = (suggestion: AddressSuggestion) => {
     const address = suggestion.address;
+    const street = address.road || address.highway || (address.house_number ? `${address.house_number}${address.road ? ' ' + address.road : ''}` : '') || '';
     setFormData(prev => ({
       ...prev,
       search_address: suggestion.display_name,
       address: suggestion.display_name,
-      street: address.road || address.house_number || '',
+      street,
       country: address.country || 'India',
       state: address.state || '',
       city: address.city || address.suburb || '',
@@ -207,6 +209,10 @@ const EditProjectForm = () => {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleDescriptionChange = (value) => {
+    setFormData(prev => ({ ...prev, description: value }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -296,12 +302,20 @@ const EditProjectForm = () => {
 
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
-          <Textarea 
-            name="description" 
-            placeholder="Project description" 
-            value={formData.description} 
-            onChange={handleChange} 
-            rows={3}
+          <ReactQuill
+            value={formData.description}
+            onChange={handleDescriptionChange}
+            theme="snow"
+            modules={{
+              toolbar: [
+                [{ 'header': [1, 2, false] }],
+                ['bold', 'italic', 'underline'],
+                [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+                ['link', 'image'],
+                ['clean']
+              ]
+            }}
+            className="bg-white"
           />
         </div>
 
@@ -372,13 +386,12 @@ const EditProjectForm = () => {
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Full Address</label>
-          <Textarea 
+          <label className="block text-sm font-medium text-gray-700 mb-1">Address</label>
+          <Input 
             name="address" 
             placeholder="Complete address" 
             value={formData.address} 
             onChange={handleChange} 
-            rows={2}
           />
         </div>
 

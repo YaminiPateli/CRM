@@ -3,13 +3,15 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth, User } from '@/contexts/AuthContext'; // Import User type
 
 const EditProfileForm = ({ user, onClose }) => {
   const { user: currentUser, setUser } = useAuth();
   const [name, setName] = useState(user?.name || '');
   const [phone, setPhone] = useState(user?.phone || '');
   const [role, setRole] = useState(user?.role || 'agent');
+  const [profilePhoto, setProfilePhoto] = useState<File | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(user?.profile_photo || null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
@@ -18,22 +20,38 @@ const EditProfileForm = ({ user, onClose }) => {
     setName(user?.name || '');
     setPhone(user?.phone || '');
     setRole(user?.role || 'agent');
+    setPreviewUrl(user?.profile_photo || null);
   }, [user]);
+
+  const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setProfilePhoto(file);
+      setPreviewUrl(URL.createObjectURL(file));
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError(null);
-    setSuccess(false); // Reset success state before submission
+    setSuccess(false);
+
+    const formData = new FormData();
+    formData.append('name', name);
+    formData.append('phone', phone);
+    formData.append('role', role);
+    if (profilePhoto) {
+      formData.append('profile_photo', profilePhoto);
+    }
 
     try {
       const response = await fetch(`http://localhost:3001/api/profile`, {
         method: 'PUT',
         headers: {
-          'Content-Type': 'application/json',
           'Authorization': `Bearer ${localStorage.getItem('auth_token')}`,
         },
-        body: JSON.stringify({ name, phone, role }),
+        body: formData,
       });
 
       const result = await response.json();
@@ -42,23 +60,36 @@ const EditProfileForm = ({ user, onClose }) => {
         throw new Error(result.error || 'Failed to update profile');
       }
 
-      // Update the auth context with the new user data
       if (setUser && typeof setUser === 'function') {
-        setUser((prevUser) => ({
-          ...prevUser,
+        const updatedUser: User = {
+          id: currentUser?.id || '', // Use currentUser.id
+          email: currentUser?.email || '', // Use currentUser.email
+          name,
+          role: role as 'admin' | 'manager' | 'agent' | 'user(sales)',
+          phone: phone || undefined,
+          profile_photo: result.updatedUser.profile_photo || currentUser?.profile_photo || undefined,
+        };
+        setUser(updatedUser);
+        localStorage.setItem('user_data', JSON.stringify({
+          ...currentUser,
           name,
           phone,
           role,
+          profile_photo: result.updatedUser.profile_photo || currentUser?.profile_photo,
         }));
-        // Also update localStorage to keep it in sync
-        localStorage.setItem('user_data', JSON.stringify({ ...currentUser, name, phone, role }));
       } else {
         console.warn('setUser is not available, updating localStorage only');
-        localStorage.setItem('user_data', JSON.stringify({ ...currentUser, name, phone, role }));
+        localStorage.setItem('user_data', JSON.stringify({
+          ...currentUser,
+          name,
+          phone,
+          role,
+          profile_photo: result.updatedUser.profile_photo || currentUser?.profile_photo,
+        }));
       }
       setSuccess(true);
       setTimeout(() => {
-        setSuccess(false); // Clear success state after timeout
+        setSuccess(false);
         onClose();
       }, 2000);
     } catch (error) {
@@ -110,8 +141,24 @@ const EditProfileForm = ({ user, onClose }) => {
             <SelectItem value="admin">Admin</SelectItem>
             <SelectItem value="manager">Manager</SelectItem>
             <SelectItem value="agent">Agent</SelectItem>
+            <SelectItem value="user(sales)">User (Sales)</SelectItem>
           </SelectContent>
         </Select>
+      </div>
+      <div>
+        <Label htmlFor="profile_photo">Profile Photo</Label>
+        <Input
+          id="profile_photo"
+          type="file"
+          accept="image/*"
+          onChange={handlePhotoChange}
+          disabled={!canEdit}
+        />
+        {previewUrl && (
+          <div className="mt-2">
+            <img src={previewUrl.startsWith('http') ? previewUrl : `http://localhost:3001${previewUrl}`} alt="Profile Preview" className="w-24 h-24 object-cover rounded-full" />
+          </div>
+        )}
       </div>
       <div className="flex justify-end gap-3">
         <Button type="button" variant="outline" onClick={onClose}>Cancel</Button>

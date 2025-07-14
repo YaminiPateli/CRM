@@ -1,11 +1,12 @@
-
 import React, { createContext, useContext, useState, useEffect } from 'react';
 
-interface User {
+export interface User { // Added 'export' to make User interface available for import
   id: string;
   email: string;
   name: string;
-  role: 'admin' | 'manager' | 'agent';
+  role: 'admin' | 'manager' | 'agent' | 'user(sales)';
+  phone?: string; // Optional phone number
+  profile_photo?: string; // Optional profile photo path
 }
 
 interface AuthContextType {
@@ -15,14 +16,16 @@ interface AuthContextType {
   logout: () => void;
   hasPermission: (permission: string) => boolean;
   isLoading: boolean;
+  setUser: (user: User | null) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 const rolePermissions = {
-  admin: ['view_leads', 'create_leads', 'assign_leads', 'create_projects', 'edit_projects','delete_projects', 'create_users', 'view_reports', 'export_reports', 'manage_users'],
-  manager: ['view_leads', 'create_leads', 'assign_leads', 'create_projects', 'view_reports', 'export_reports'],
-  agent: ['view_leads', 'create_leads', 'view_reports_limited']
+  admin: ['view_leads', 'create_leads', 'assign_leads', 'create_projects', 'manage_project', 'edit_projects', 'delete_projects', 'create_users', 'view_reports', 'export_reports', 'manage_users'],
+  manager: ['view_leads', 'create_leads', 'assign_leads', 'create_projects', 'manage_project', 'view_reports', 'export_reports'],
+  agent: ['view_leads', 'create_leads', 'view_reports_limited'],
+  'user(sales)': ['view_leads'],
 };
 
 // API base URL - using Vite environment variables
@@ -114,7 +117,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     logout,
     hasPermission,
     isLoading,
-    setUser, // Added setUser to the context value
+    setUser,
   };
 
   return (

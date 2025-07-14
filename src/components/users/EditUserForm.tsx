@@ -4,6 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useAuth } from '@/contexts/AuthContext';
+import { useToast } from "@/components/ui/use-toast";
 
 interface User {
   id: string;
@@ -27,6 +28,7 @@ const EditUserForm = ({ user, onClose, onUserUpdated }: EditUserFormProps) => {
   const [phone, setPhone] = useState(user.phone || '');
   const [role, setRole] = useState(user.role);
   const [status, setStatus] = useState(user.status);
+  const { toast } = useToast();
 
   useEffect(() => {
     setName(user.name);
@@ -37,27 +39,43 @@ const EditUserForm = ({ user, onClose, onUserUpdated }: EditUserFormProps) => {
   }, [user]);
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    try {
-      const response = await fetch(`http://localhost:3001/api/users/${user.id}`, {
-        method: 'PUT',
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('auth_token')}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ name, email, phone, role, status }),
+  e.preventDefault();
+  try {
+    const response = await fetch(`http://localhost:3001/api/users/${user.id}`, {
+      method: 'PUT',
+      headers: {
+        'Authorization': `Bearer ${localStorage.getItem('auth_token')}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ name, email, phone, role, status }),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      toast({
+        title: "Update Failed",
+        description: errorData.error || "Something went wrong.",
+        variant: "destructive",
       });
-      if (response.ok) {
-        onUserUpdated();
-        onClose();
-      } else {
-        const errorData = await response.json();
-        console.error('Update failed:', errorData.error);
-      }
-    } catch (error) {
-      console.error('Error updating profile:', error);
+      return;
     }
-  };
+
+    toast({
+      title: "Success",
+      description: "User updated successfully.",
+    });
+
+    onUserUpdated();
+    onClose();
+  } catch (error) {
+    toast({
+      title: "Network Error",
+      description: "Failed to update user. Please try again.",
+      variant: "destructive",
+    });
+    console.error('Error updating profile:', error);
+  }
+};
 
   const isAdmin = currentUser?.role === 'admin';
   const canEdit = isAdmin || currentUser?.id === user.id;
@@ -86,6 +104,7 @@ const EditUserForm = ({ user, onClose, onUserUpdated }: EditUserFormProps) => {
             <SelectItem value="admin">Admin</SelectItem>
             <SelectItem value="manager">Manager</SelectItem>
             <SelectItem value="agent">Agent</SelectItem>
+            <SelectItem value="user(sales)">User (Sales)</SelectItem> 
           </SelectContent>  
         </Select>
       </div>
